@@ -6,6 +6,7 @@ version = '1.0'
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
@@ -13,8 +14,27 @@ dependencies {
     compile 'com.rabbitmq:amqp-client:3.6.1'
     compile 'org.apache.avro:avro:1.8.0'
     compile 'commons-configuration:commons-configuration:1.6'
+    compile "org.apache.avro:avro:1.7.7"
 }
 
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.commercehub.gradle.plugin:gradle-avro-plugin:0.8.0"
+    }
+}
+
+sourceSets {
+    main {
+        runtimeClasspath = files('src/main/avro') + files('build/generated-main-avro-java') + runtimeClasspath
+    }
+}
+
+apply plugin: "com.commercehub.gradle.plugin.avro"
 
 task runPrashtiServer(type: JavaExec, dependsOn: 'classes') {
     group 'Chariot'
