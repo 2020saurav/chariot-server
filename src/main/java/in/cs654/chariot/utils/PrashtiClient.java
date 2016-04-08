@@ -21,7 +21,14 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.AMQP.BasicProperties;
+import in.cs654.chariot.avro.BasicRequest;
+import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.prashti.PrashtiServer;
+import org.apache.avro.io.*;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificDatumWriter;
+
+import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 
 // TODO add javadoc
@@ -32,6 +39,9 @@ public class PrashtiClient {
     private final String replyQueueName;
     private final QueueingConsumer consumer;
     private static final String requestQueueName = PrashtiServer.RPC_QUEUE_NAME;
+    private BinaryEncoder encoder = null;
+    private BinaryDecoder decoder = null;
+    private final ByteArrayOutputStream baos;
 
     public PrashtiClient(String ipAddr) throws Exception {
         final ConnectionFactory factory = new ConnectionFactory();
@@ -41,23 +51,30 @@ public class PrashtiClient {
         replyQueueName = channel.queueDeclare().getQueue();
         consumer = new QueueingConsumer(channel);
         channel.basicConsume(replyQueueName, true, consumer);
+        baos = new ByteArrayOutputStream();
     }
 
-    public String call(String message) throws Exception {
-        String response;
-        String corrId = UUID.randomUUID().toString();
-        BasicProperties props = new BasicProperties
-                .Builder()
+    public BasicResponse call(BasicRequest request) throws Exception {
+        BasicResponse response = new BasicResponse();
+        final String corrId = UUID.randomUUID().toString();
+        final BasicProperties props = new BasicProperties.Builder()
                 .correlationId(corrId)
                 .replyTo(replyQueueName)
                 .build();
-
-        channel.basicPublish("", requestQueueName, props, message.getBytes("UTF-8"));
+        baos.reset();
+        final DatumWriter<BasicRequest> avroWriter = new SpecificDatumWriter<BasicRequest>(BasicRequest.class);
+        encoder = EncoderFactory.get().binaryEncoder(baos, encoder);
+        avroWriter.write(request, encoder);
+        encoder.flush();
+        channel.basicPublish("", requestQueueName, props, baos.toByteArray());
 
         while (true) {
             QueueingConsumer.Delivery delivery = consumer.nextDelivery();
             if (delivery.getProperties().getCorrelationId().equals(corrId)) {
-                response = new String(delivery.getBody(),"UTF-8");
+                final DatumReader<BasicResponse> avroReader =
+                        new SpecificDatumReader<BasicResponse>(BasicResponse.class);
+                decoder = DecoderFactory.get().binaryDecoder(delivery.getBody(), decoder);
+                response = avroReader.read(response, decoder);
                 break;
             }
         }

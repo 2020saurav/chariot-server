@@ -21,6 +21,15 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.AMQP.BasicProperties;
+import in.cs654.chariot.avro.BasicRequest;
+import in.cs654.chariot.avro.BasicResponse;
+import org.apache.avro.io.*;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificDatumWriter;
+
+import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 // TODO write javadoc
@@ -28,12 +37,9 @@ public class PrashtiServer {
     public static final String RPC_QUEUE_NAME = "rpc_queue_prashti";
     private static final Logger LOGGER = Logger.getLogger(PrashtiServer.class.getName());
     private static final String HOST_IP_ADDR = "0.0.0.0";
-
-    private static int fib(int n) {
-        if (n==0) return 0;
-        if (n==1) return 1;
-        return fib(n-1) + fib(n-2);
-    }
+    private static BinaryDecoder decoder = null;
+    private static BinaryEncoder encoder = null;
+    private static ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
     public static void main(String[] args) {
         Connection connection = null;
@@ -51,26 +57,50 @@ public class PrashtiServer {
             LOGGER.info("Prashti Server started. Waiting for requests...");
 
             while (true) {
-                String response = "";
                 final QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-
-                BasicProperties props = delivery.getProperties();
+                BasicResponse response = new BasicResponse();
+                BasicRequest request = new BasicRequest();
+                final BasicProperties props = delivery.getProperties();
                 final BasicProperties replyProps = new BasicProperties.Builder()
                         .correlationId(props.getCorrelationId()).build();
                 try {
-                    String message = new String(delivery.getBody(), "UTF-8");
-                    final int n = Integer.parseInt(message);
-                    LOGGER.info("Message received: " + message);
-                    response = "" + fib(n);
+                    final DatumReader<BasicRequest> avroReader =
+                            new SpecificDatumReader<BasicRequest>(BasicRequest.class);
+                    decoder = DecoderFactory.get().binaryDecoder(delivery.getBody(), decoder);
+                    request = avroReader.read(request, decoder);
+
+                    final Map<String, String> kvMap = new HashMap<String, String>();
+                    kvMap.put("value", "5"); // TODO use refl to call method (or defer it after docker integration)
+                    response = BasicResponse.newBuilder()
+                            .setFunctionName(request.getFunctionName())
+                            .setRequestId(request.getRequestId())
+                            .setStatus("SUCCESS")
+                            .setResponse(kvMap)
+                            .build(); // TODO fix these
+
                 } catch (Exception e) {
+                    e.printStackTrace();
                     LOGGER.severe("Error in handling request: " + e.getMessage());
-                    response = "";
+                    response = BasicResponse.newBuilder()
+                            .setResponse(new HashMap<String, String>())
+                            .setFunctionName(request.getFunctionName())
+                            .setRequestId(request.getRequestId())
+                            .setStatus("ERROR")
+                            .build();
                 } finally {
-                    channel.basicPublish("", props.getReplyTo(), replyProps, response.getBytes("UTF-8"));
+                    baos.reset();
+                    final DatumWriter<BasicResponse> avroWriter =
+                            new SpecificDatumWriter<BasicResponse>(BasicResponse.class);
+                    encoder = EncoderFactory.get().binaryEncoder(baos, encoder);
+                    avroWriter.write(response, encoder);
+                    encoder.flush();
+                    LOGGER.info("Responding to request id " + request.getRequestId() + " " + response.getStatus());
+                    channel.basicPublish("", props.getReplyTo(), replyProps, baos.toByteArray());
                     channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             LOGGER.severe("Error in RPC server: " + e.getMessage());
         } finally {
             if (connection != null) {

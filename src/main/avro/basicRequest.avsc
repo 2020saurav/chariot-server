@@ -1,0 +1,32 @@
+{
+  "namespace": "in.cs654.chariot.avro",
+  "type": "record",
+  "name": "BasicRequest",
+  "fields": [
+    {
+      "name": "device_id",
+      "type": "string",
+      "doc": "Device Id of the requesting node"
+    },
+    {
+      "name": "request_id",
+      "type": "string",
+      "doc": "Random ID to uniquely identify a request"
+    },
+    {
+      "name": "function_name",
+      "type": "string",
+      "doc": "Name of the function to be called in RPC"
+    },
+    {
+      "name": "arguments",
+      "type": {"type": "array", "items": "string"},
+      "doc": "Arguments to be passed along with the function"
+    },
+    {
+      "name": "extra_data",
+      "type": {"type": "map", "values":"string"},
+      "doc": "Any extra data that may be needed by the processing node"
+    }
+ ]
+}

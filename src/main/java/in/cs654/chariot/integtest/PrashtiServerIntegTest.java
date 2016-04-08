@@ -16,27 +16,41 @@
 
 package in.cs654.chariot.integtest;
 
+import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.utils.PrashtiClient;
+import in.cs654.chariot.avro.BasicRequest;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class PrashtiServerIntegTest {
+
     public static void main(String[] args) {
-        PrashtiClient fibonacciRpc = null;
-        String response;
+        PrashtiClient testRpc = null;
+        BasicResponse response;
         try {
             // TODO use apache common conf to read these from config
-            fibonacciRpc = new PrashtiClient("172.24.1.62");
+            testRpc = new PrashtiClient("172.24.1.62");
 
-            System.out.println(" [x] Requesting fib(30)");
-            response = fibonacciRpc.call("30");
-            System.out.println(" [.] Got '" + response + "'");
+            BasicRequest lastDigitOfPi = BasicRequest.newBuilder()
+                    .setRequestId("42")
+                    .setDeviceId("1")
+                    .setFunctionName("lastDigitOfPi")
+                    .setArguments(new ArrayList<String>())
+                    .setExtraData(new HashMap<String, String>())
+                    .build();
+
+            System.out.println("Requesting " + lastDigitOfPi.getFunctionName());
+            response = testRpc.call(lastDigitOfPi);
+            System.out.println(" [.] Got '" + response.getResponse().get("value") + "'");
         }
         catch  (Exception e) {
             e.printStackTrace();
         }
         finally {
-            if (fibonacciRpc!= null) {
+            if (testRpc!= null) {
                 try {
-                    fibonacciRpc.close();
+                    testRpc.close();
                 }
                 catch (Exception ignore) {}
             }

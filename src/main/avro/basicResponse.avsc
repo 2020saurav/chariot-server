@@ -1,0 +1,27 @@
+{
+  "namespace": "in.cs654.chariot.avro",
+  "type": "record",
+  "name": "BasicResponse",
+  "fields": [
+    {
+      "name":"request_id",
+      "type": "string",
+      "doc": "Id of the corresponding request"
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "doc": "Return status of the response"
+    },
+    {
+      "name": "function_name",
+      "type": "string",
+      "doc" : "For book keeping purpose"
+    },
+    {
+      "name": "response",
+      "type": {"type": "map", "values":"string"},
+      "doc": "Map of key-value pairs of response object"
+    }
+  ]
+}
