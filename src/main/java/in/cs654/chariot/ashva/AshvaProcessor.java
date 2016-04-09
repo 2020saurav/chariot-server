@@ -18,15 +18,51 @@ package in.cs654.chariot.ashva;
 
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
+import in.cs654.chariot.utils.AvroUtils;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 public class AshvaProcessor {
+
     public static BasicResponse process(BasicRequest request) {
-        // TODO execute this request on ashva
-        return new BasicResponse();
+        final String requestID = request.getRequestId();
+        try {
+            final byte[] serializedBytes = AvroUtils.requestToBytes(request);
+            final FileOutputStream fos = new FileOutputStream("/tmp/" + requestID + ".req");
+            fos.write(serializedBytes);
+            fos.close();
+            // TODO fetch docker image name from DB based on device_id
+            final String cmd = "docker run -v /tmp:/tmp 2020saurav/chariot:1.0 /bin/chariot " + requestID;
+            final Process process = Runtime.getRuntime().exec(cmd);
+            try {
+                if (process.waitFor(10L, TimeUnit.SECONDS)) {
+                    final Path path = Paths.get("/tmp/" + requestID + ".res");
+                    byte[] bytes = Files.readAllBytes(path);
+                    return AvroUtils.bytesToResponse(bytes);
+                } else {
+                    return error(request);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return error(request);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return error(request);
+        }
     }
 
     public static BasicResponse error(BasicRequest request) {
-        // TODO set fields
-        return new BasicResponse();
+        return BasicResponse.newBuilder()
+                .setFunctionName(request.getFunctionName())
+                .setRequestId(request.getRequestId())
+                .setStatus("ERROR")
+                .setResponse(new HashMap<String, String>())
+                .build();
     }
 }
