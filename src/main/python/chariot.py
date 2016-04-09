@@ -13,8 +13,8 @@ sys.path.append('/root/chariot/')
 
 import handler
 
-requestSchema  = avro.schema.Parse(open('avro-schema/basicRequest.avsc').read())
-responseSchema = avro.schema.Parse(open('avro-schema/basicResponse.avsc').read())
+requestSchema  = avro.schema.Parse(open('/root/chariot/avro-schema/basicRequest.avsc').read())
+responseSchema = avro.schema.Parse(open('/root/chariot/avro-schema/basicResponse.avsc').read())
 
 def buildResponseBody(response, request):
   responseBody = {
