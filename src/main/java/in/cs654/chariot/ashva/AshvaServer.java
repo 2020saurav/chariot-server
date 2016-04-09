@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package in.cs654.chariot.prashti;
+package in.cs654.chariot.ashva;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -31,9 +31,9 @@ import java.io.ByteArrayOutputStream;
 import java.util.logging.Logger;
 
 // TODO write javadoc
-public class PrashtiServer {
-    public static final String RPC_QUEUE_NAME = "rpc_queue_prashti";
-    private static final Logger LOGGER = Logger.getLogger(PrashtiServer.class.getName());
+public class AshvaServer {
+    public static final String RPC_QUEUE_NAME = "rpc_queue_ashva";
+    private static final Logger LOGGER = Logger.getLogger(AshvaServer.class.getName());
     private static final String HOST_IP_ADDR = "0.0.0.0";
     private static BinaryDecoder decoder = null;
     private static BinaryEncoder encoder = null;
@@ -52,7 +52,7 @@ public class PrashtiServer {
 
             final QueueingConsumer consumer = new QueueingConsumer(channel);
             channel.basicConsume(RPC_QUEUE_NAME, false, consumer);
-            LOGGER.info("Prashti Server started. Waiting for requests...");
+            LOGGER.info("Ashva Server started. Waiting for requests...");
 
             while (true) {
                 final QueueingConsumer.Delivery delivery = consumer.nextDelivery();
@@ -66,12 +66,12 @@ public class PrashtiServer {
                             new SpecificDatumReader<BasicRequest>(BasicRequest.class);
                     decoder = DecoderFactory.get().binaryDecoder(delivery.getBody(), decoder);
                     request = avroReader.read(request, decoder);
-                    response = RequestProcessor.process(request);
+                    response = AshvaProcessor.process(request);
 
                 } catch (Exception e) {
                     e.printStackTrace();
                     LOGGER.severe("Error in handling request: " + e.getMessage());
-                    response = RequestProcessor.error(request);
+                    response = AshvaProcessor.error(request);
 
                 } finally {
                     baos.reset();
