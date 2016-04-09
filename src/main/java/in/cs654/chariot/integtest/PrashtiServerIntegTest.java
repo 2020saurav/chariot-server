@@ -17,6 +17,7 @@
 package in.cs654.chariot.integtest;
 
 import in.cs654.chariot.avro.BasicResponse;
+import in.cs654.chariot.utils.CommonUtils;
 import in.cs654.chariot.utils.PrashtiClient;
 import in.cs654.chariot.avro.BasicRequest;
 
@@ -32,17 +33,17 @@ public class PrashtiServerIntegTest {
             // TODO use apache common conf to read these from config
             testRpc = new PrashtiClient("172.24.1.62");
 
-            BasicRequest lastDigitOfPi = BasicRequest.newBuilder()
-                    .setRequestId("42")
+            BasicRequest lifeUniv = BasicRequest.newBuilder()
+                    .setRequestId(CommonUtils.randomString(32))
                     .setDeviceId("1")
-                    .setFunctionName("lastDigitOfPi")
+                    .setFunctionName("testFunc")
                     .setArguments(new ArrayList<String>())
                     .setExtraData(new HashMap<String, String>())
                     .build();
 
-            System.out.println("Requesting " + lastDigitOfPi.getFunctionName());
-            response = testRpc.call(lastDigitOfPi);
-            System.out.println(" [.] Got '" + response.getResponse().get("value") + "'");
+            System.out.println("Requesting " + lifeUniv.getFunctionName());
+            response = testRpc.call(lifeUniv);
+            System.out.println(" [.] Got '" + response.getResponse().get("answer") + "'");
         }
         catch  (Exception e) {
             e.printStackTrace();

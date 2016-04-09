@@ -18,6 +18,7 @@ package in.cs654.chariot.prashti;
 
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
+import in.cs654.chariot.utils.AshvaClient;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,9 +32,14 @@ public class RequestProcessor {
     public static BasicResponse process(BasicRequest request) {
         if (reservedFunctions.contains(request.getFunctionName())) {
             return PrashtiProcessor.process(request);
-        } else {
-            // TODO make RPC to ashva
-            return new BasicResponse();
+        } else try {
+            // TODO load balancing strategy to find IP addr
+            final AshvaClient client = new AshvaClient("172.24.1.62");
+            final BasicResponse response = client.call(request);
+            return response;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return error(request);
         }
     }
 

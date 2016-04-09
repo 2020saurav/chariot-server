@@ -43,6 +43,13 @@ task runPrashtiServer(type: JavaExec, dependsOn: 'classes') {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task runAshvaServer(type: JavaExec, dependsOn: 'classes') {
+    group 'Chariot'
+    description 'Runs RPC server for Ashva (Worker)'
+    main = 'in.cs654.chariot.ashva.AshvaServer'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 task runPrashtiIntegrationTest(type: JavaExec, dependsOn: 'classes') {
     group 'Chariot'
     description 'Integration test for Prashti Server'
