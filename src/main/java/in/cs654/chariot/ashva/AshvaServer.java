@@ -30,7 +30,10 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import java.io.ByteArrayOutputStream;
 import java.util.logging.Logger;
 
-// TODO write javadoc
+/**
+ * This class is the RPC server for Ashva module, built using RabbitMQ. The server keeps listening to RPC requests,
+ * and passes the request to AshvaProcessor for execution and creation of response object.
+ */
 public class AshvaServer {
     public static final String RPC_QUEUE_NAME = "rpc_queue_ashva";
     private static final Logger LOGGER = Logger.getLogger(AshvaServer.class.getName());

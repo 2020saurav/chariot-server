@@ -27,8 +27,21 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * This class provides implements 2 methods called process and error to prepare response when the request is fulfilled,
+ * or it fails.
+ */
 public class AshvaProcessor {
 
+    /**
+     * This function takes in request, executes the request and returns the response.
+     * The request is written into /tmp/<request_id>.req file. While running the docker container, /tmp dir is mounted
+     * to /tmp of the container. This enables ease of data exchange. TODO a key may be kept to encrypt and decrypt this
+     * Docker runs the request and puts the result into /tmp/<request_id>.res. A timeout has been set as 10s, failing
+     * which error response is sent.
+     * @param request containing function_name and other required information
+     * @return response of the request
+     */
     public static BasicResponse process(BasicRequest request) {
         final String requestID = request.getRequestId();
         try {
@@ -57,6 +70,11 @@ public class AshvaProcessor {
         }
     }
 
+    /**
+     * Method to build response for ERROR case
+     * @param request request object
+     * @return response with status ERROR
+     */
     public static BasicResponse error(BasicRequest request) {
         return BasicResponse.newBuilder()
                 .setFunctionName(request.getFunctionName())

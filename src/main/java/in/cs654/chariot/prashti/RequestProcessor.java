@@ -24,11 +24,21 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-// TODO javadoc
+/**
+ * This class contains method to process requests to generate responses, and to generate error responses.
+ * Based on the list of reservedFunctions (function names which will not be allowed at Ashva level), this method
+ * will run the request on Prashti (for calls like setup new device, heartbeat etc) or forward to Ashva for execution
+ */
 public class RequestProcessor {
 
     public static List<String> reservedFunctions = Arrays.asList("chariotSetup", "chariotFoo");
 
+    /**
+     * This method checks if the request is to be handled at Prashti ot be forwarded to Ashva
+     * For forwarding the request, TODO get the IP address using device_id
+     * @param request request object
+     * @return response of the request
+     */
     public static BasicResponse process(BasicRequest request) {
         if (reservedFunctions.contains(request.getFunctionName())) {
             return PrashtiProcessor.process(request);
@@ -43,6 +53,11 @@ public class RequestProcessor {
         }
     }
 
+    /**
+     * Method to build response for ERROR case
+     * @param request request object
+     * @return response with status ERROR
+     */
     public static BasicResponse error(BasicRequest request) {
         return BasicResponse.newBuilder()
                 .setResponse(new HashMap<String, String>())

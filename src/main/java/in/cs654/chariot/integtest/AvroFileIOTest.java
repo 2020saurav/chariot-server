@@ -17,6 +17,7 @@
 package in.cs654.chariot.integtest;
 
 import in.cs654.chariot.avro.BasicRequest;
+import in.cs654.chariot.utils.CommonUtils;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
@@ -39,7 +40,7 @@ public class AvroFileIOTest {
     public static void main(String[] args) {
 
         BasicRequest request = BasicRequest.newBuilder()
-                .setRequestId("1222109")
+                .setRequestId(CommonUtils.randomString(32))
                 .setArguments(new ArrayList<String>())
                 .setDeviceId("1")
                 .setExtraData(new HashMap<String, String>())

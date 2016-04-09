@@ -30,7 +30,11 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import java.io.ByteArrayOutputStream;
 import java.util.logging.Logger;
 
-// TODO write javadoc
+/**
+ * This class is the RPC server for Prashti module, built using RabbitMQ. The server keeps listening to RPC requests,
+ * and passes the request to PrashtiProcessor for execution and creation of response object. PrashtiProcessor
+ * decides if the request is to be handled at Prashti level or be forwarded to Ashva as RPC.
+ */
 public class PrashtiServer {
     public static final String RPC_QUEUE_NAME = "rpc_queue_prashti";
     private static final Logger LOGGER = Logger.getLogger(PrashtiServer.class.getName());
