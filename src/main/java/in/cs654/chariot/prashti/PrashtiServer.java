@@ -68,25 +68,13 @@ public class PrashtiServer {
                             new SpecificDatumReader<BasicRequest>(BasicRequest.class);
                     decoder = DecoderFactory.get().binaryDecoder(delivery.getBody(), decoder);
                     request = avroReader.read(request, decoder);
-
-                    final Map<String, String> kvMap = new HashMap<String, String>();
-                    kvMap.put("value", "5"); // TODO use refl to call method (or defer it after docker integration)
-                    response = BasicResponse.newBuilder()
-                            .setFunctionName(request.getFunctionName())
-                            .setRequestId(request.getRequestId())
-                            .setStatus("SUCCESS")
-                            .setResponse(kvMap)
-                            .build(); // TODO fix these
+                    response = RequestProcessor.process(request);
 
                 } catch (Exception e) {
                     e.printStackTrace();
                     LOGGER.severe("Error in handling request: " + e.getMessage());
-                    response = BasicResponse.newBuilder()
-                            .setResponse(new HashMap<String, String>())
-                            .setFunctionName(request.getFunctionName())
-                            .setRequestId(request.getRequestId())
-                            .setStatus("ERROR")
-                            .build();
+                    response = RequestProcessor.error(request);
+
                 } finally {
                     baos.reset();
                     final DatumWriter<BasicResponse> avroWriter =
