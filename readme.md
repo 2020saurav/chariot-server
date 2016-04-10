@@ -8,5 +8,4 @@
 * Sync manager
 * Recovery manager and fault tolerance
 * Load balancing and scheduling
-* Different project for avro schemas and expose its
 * Complete this readme
