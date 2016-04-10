@@ -64,6 +64,13 @@ task runAshvaProcessorTest(type: JavaExec, dependsOn: 'classes') {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task runImageIOTest(type: JavaExec, dependsOn: 'classes') {
+    group 'Chariot'
+    description 'Image IO Test'
+    main = 'in.cs654.chariot.integtest.ImageIOTest'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 test {
     testLogging {
         events 'started', 'passed'
