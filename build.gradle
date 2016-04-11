@@ -16,6 +16,7 @@ dependencies {
     compile 'commons-configuration:commons-configuration:1.6'
     compile 'org.apache.avro:avro:1.7.7'
     compile 'org.mongodb:mongo-java-driver:3.2.2'
+    compile 'com.google.code.gson:gson:2.3.1'
 }
 
 buildscript {

@@ -30,8 +30,7 @@ public class PrashtiServerIntegTest {
         PrashtiClient testRpc = null;
         BasicResponse response;
         try {
-            // TODO use apache common conf to read these from config
-            testRpc = new PrashtiClient("172.24.1.62");
+            testRpc = new PrashtiClient();
 
             BasicRequest lifeUniv = BasicRequest.newBuilder()
                     .setRequestId(CommonUtils.randomString(32))

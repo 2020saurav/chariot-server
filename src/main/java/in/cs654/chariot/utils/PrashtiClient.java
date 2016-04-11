@@ -29,32 +29,52 @@ import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
-// TODO add javadoc
+/**
+ * This class used to create client objects for making calls to PrashtiServer.
+ */
 public class PrashtiClient {
 
-    private final Connection connection;
-    private final Channel channel;
-    private final String replyQueueName;
-    private final QueueingConsumer consumer;
+    private Connection connection;
+    private Channel channel;
+    private String replyQueueName;
+    private QueueingConsumer consumer;
     private static final String requestQueueName = PrashtiServer.RPC_QUEUE_NAME;
     private BinaryEncoder encoder = null;
     private BinaryDecoder decoder = null;
-    private final ByteArrayOutputStream baos;
+    private ByteArrayOutputStream baos;
+    final ConnectionFactory factory = new ConnectionFactory();
+    Prashti prashtiServer = null;
 
-    public PrashtiClient(String ipAddr) throws Exception {
-        final ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(ipAddr);
-        connection = factory.newConnection();
-        channel = connection.createChannel();
-        replyQueueName = channel.queueDeclare().getQueue();
-        consumer = new QueueingConsumer(channel);
-        channel.basicConsume(replyQueueName, true, consumer);
-        baos = new ByteArrayOutputStream();
+    public PrashtiClient() {
+        setupPrashtiClient();
     }
 
-    public BasicResponse call(BasicRequest request) throws Exception {
+    private void setupPrashtiClient() {
+        // TODO handle empty list case
+        prashtiServer = D2Client.getPrashtiServers().get(0);
+        factory.setHost(prashtiServer.getIpAddr());
+        try {
+            connection = factory.newConnection();
+            channel = connection.createChannel();
+            replyQueueName = channel.queueDeclare().getQueue();
+            consumer = new QueueingConsumer(channel);
+            channel.basicConsume(replyQueueName, true, consumer);
+            baos = new ByteArrayOutputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            setupPrashtiClient(); // TODO profile this
+        }
+    }
+
+    public BasicResponse call(BasicRequest request) throws IOException, InterruptedException {
+        // TODO profile this to see if rabbitmq calls fixes it or a timeout is needed
+        // TODO in case timeout is needed, run setupPrashtiClient() after timeout
         BasicResponse response = new BasicResponse();
         final String corrId = UUID.randomUUID().toString();
         final BasicProperties props = new BasicProperties.Builder()
