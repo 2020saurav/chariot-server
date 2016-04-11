@@ -18,9 +18,6 @@ package in.cs654.chariot.utils;
 
 import in.cs654.chariot.avro.BasicRequest;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
