@@ -20,6 +20,7 @@ import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.utils.Ashva;
 import in.cs654.chariot.utils.AshvaClient;
+import in.cs654.chariot.utils.ReservedFunctions;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,8 +33,6 @@ import java.util.List;
  */
 public class RequestProcessor {
 
-    public static List<String> reservedFunctions = Arrays.asList("chariotDeviceSetup", "chariotServerJoin");
-
     /**
      * This method checks if the request is to be handled at Prashti ot be forwarded to Ashva
      * For forwarding the request, get the ashva from LoadBalancer and make RPC call to it
@@ -41,7 +40,7 @@ public class RequestProcessor {
      * @return response of the request
      */
     public static BasicResponse process(BasicRequest request) {
-        if (reservedFunctions.contains(request.getFunctionName())) {
+        if (ReservedFunctions.contains(request.getFunctionName())) {
             return PrashtiProcessor.process(request);
         } else try {
             final Ashva ashva = LoadBalancer.getAshva();
