@@ -48,6 +48,11 @@ public class PrashtiProcessor {
             - pull the docker image
              */
             return new BasicResponse(); // fill in appropriate information in response
+        } else if (request.getFunctionName().equals(ReservedFunctions.HEARTBEAT.toString())) {
+            /*
+            TODO
+             */
+            return new BasicResponse();
         } else {
             // TODO
             return new BasicResponse(); // fill in appropriate information in response

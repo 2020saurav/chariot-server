@@ -14,10 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package in.cs654.chariot.prashti;
+package in.cs654.chariot.utils;
 import static org.junit.Assert.*;
 
-import in.cs654.chariot.utils.ReservedFunctions;
 import org.junit.Test;
 
 public class ReservedFunctionsTest {

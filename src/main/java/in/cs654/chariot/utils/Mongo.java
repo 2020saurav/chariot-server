@@ -17,6 +17,7 @@
 package in.cs654.chariot.utils;
 
 import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
@@ -25,6 +26,7 @@ import org.bson.Document;
  * This class contains all required functions for database operations required in this application.
  * Database : chariot
  * Collections : devices - collection of device, each having device id and corresponding name of docker image
+ *               heartbeat - collection of server status : ipAddr, time of last beat, network time lag, logs
  *               <other> - <update>
  */
 public class Mongo {
@@ -32,15 +34,50 @@ public class Mongo {
     private static final MongoClient mongoClient = new MongoClient("localhost", 27017);
     private static final MongoDatabase db = mongoClient.getDatabase("chariot");
     private static final MongoCollection<Document> devicesCollection = db.getCollection("devices");
+    private static final MongoCollection<Document> heartbeatCollection = db.getCollection("heartbeat");
 
+    // using _id ensures unique id
     public static void addDevice(Device device) {
-        devicesCollection.insertOne(new Document("device", device));
+        devicesCollection.insertOne(
+                new Document("_id", device.getId()).append("docker_image", device.getDockerImage()));
     }
 
     public static String getDockerImage(String deviceID) {
-        // TODO complete this
-        return null;
+        final FindIterable<Document> docs = devicesCollection.find(new Document("_id", deviceID));
+        return docs.first().get("docker_image").toString();
     }
 
-    // TODO add other required collections and corresponding helper methods
+    public static void deleteDeviceById(String deviceID) {
+        final FindIterable<Document> docs = devicesCollection.find(new Document("_id", deviceID));
+        devicesCollection.deleteOne(docs.first());
+    }
+
+    public static void updateHeartbeat(Heartbeat heartbeat) {
+        final Long timeLag = System.currentTimeMillis() - Long.parseLong(heartbeat.getTimeOfBeat());
+        final Document doc = heartbeatCollection.find(new Document("_id", heartbeat.getIpAddr())).first();
+        if (doc == null){
+            heartbeatCollection.insertOne(
+                    new Document("_id", heartbeat.getIpAddr())
+                            .append("last_beat", heartbeat.getTimeOfBeat())
+                            .append("logs", heartbeat.getLogs())
+                            .append("network_lag", timeLag)
+            );
+        } else {
+            heartbeatCollection.replaceOne(
+                    new Document("_id", heartbeat.getIpAddr()),
+                    new Document("last_beat", heartbeat.getTimeOfBeat())
+                            .append("logs", heartbeat.getLogs())
+                            .append("network_lag", timeLag));
+        }
+    }
+
+    public static Long getLastBeatTime(String ipAddr) {
+        final FindIterable<Document> docs = heartbeatCollection.find(new Document("_id", ipAddr));
+        return Long.parseLong(docs.first().get("last_beat").toString());
+    }
+
+    public static void deleteHeartbeatByIP(String ipAddr) {
+        final FindIterable<Document> docs = heartbeatCollection.find(new Document("_id", ipAddr));
+        heartbeatCollection.deleteOne(docs.first());
+    }
 }
