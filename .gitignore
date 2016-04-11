@@ -1,0 +1,8 @@
+.idea/
+.gradle/
+build/
+gradle/
+gradlew
+gradlew.bat
+out/
+chariot-server.i*

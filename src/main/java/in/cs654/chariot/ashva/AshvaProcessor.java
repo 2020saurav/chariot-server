@@ -49,6 +49,7 @@ public class AshvaProcessor {
             final FileOutputStream fos = new FileOutputStream("/tmp/" + requestID + ".req");
             fos.write(serializedBytes);
             fos.close();
+            // TODO ReservedFunctions.DEVICE_INSTALL needs to be handled separately
             // TODO fetch docker image name from DB based on device_id
             final String cmd = "docker run -v /tmp:/tmp 2020saurav/chariot-imageblur:2.0 /bin/chariot " + requestID;
             final Process process = Runtime.getRuntime().exec(cmd);
