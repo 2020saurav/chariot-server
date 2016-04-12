@@ -23,6 +23,7 @@ import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -77,6 +78,29 @@ public class D2Client {
             return true;
         } catch (Exception ignore) {
             return false;
+        }
+    }
+
+    public static void setPrashtiServers(List<Prashti> prashtiList) {
+        try {
+            URL url = new URL(d2ServiceURL);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            String params = "";
+            if (prashtiList.size() == 1) {
+                params = "ip1=" + prashtiList.get(0).getIpAddr();
+                params += "&ip2=";
+            } else if (prashtiList.size() >= 2) {
+                params = "ip1=" + prashtiList.get(0).getIpAddr();
+                params += "&ip2=" + prashtiList.get(1).getIpAddr();
+            }
+            connection.setDoOutput(true);
+            DataOutputStream stream = new DataOutputStream(connection.getOutputStream());
+            stream.writeBytes(params);
+            stream.flush();
+            stream.close();
+            connection.getResponseCode();
+        } catch (Exception ignore) {
         }
     }
 }

@@ -52,6 +52,13 @@ task runAshvaServer(type: JavaExec, dependsOn: 'classes') {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+task runZooKeeperServer(type: JavaExec, dependsOn: 'classes') {
+    group 'Chariot'
+    description 'Runs RPC server for Turagraksa (ZooKeeper)'
+    main = 'in.cs654.chariot.turagraksa.ZooKeeperServer'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
 task runPrashtiIntegrationTest(type: JavaExec, dependsOn: 'classes') {
     group 'Chariot'
     description 'Integration test for Prashti Server'
