@@ -38,13 +38,6 @@ public class PrashtiProcessor {
             }
             return ResponseFactory.getEmptyResponse(request);
 
-        } else if (request.getFunctionName().equals(ReservedFunctions.DEVICE_INSTALL.toString())) {
-            /*
-            TODO install this device dependencies and update database.
-            - add this device information in database
-            - pull the docker image
-             */
-            return new BasicResponse(); // fill in appropriate information in response
         } else {
             // TODO
             return new BasicResponse(); // fill in appropriate information in response

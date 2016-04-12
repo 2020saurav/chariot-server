@@ -53,7 +53,7 @@ public class AshvaProcessor {
             fos.close();
             // TODO ReservedFunctions.DEVICE_INSTALL needs to be handled separately
             // TODO fetch docker image name from DB based on device_id
-            final String cmd = "docker run -v /tmp:/tmp 2020saurav/chariot-imageblur:2.0 /bin/chariot " + requestID;
+            final String cmd = "docker run -v /tmp:/tmp 2020saurav/chariot:1.0 /bin/chariot " + requestID;
             final Process process = Runtime.getRuntime().exec(cmd);
             try {
                 if (process.waitFor(10L, TimeUnit.SECONDS)) {
