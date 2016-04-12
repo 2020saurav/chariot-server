@@ -24,7 +24,7 @@ package in.cs654.chariot.turagraksa;
  * - receive heartbeat from all servers and update db : will be used by Load Balancer and ZK itself
  * - new prashti selection
  * - syncing data with new servers
- * - syncing data with other prashti
+ * - syncing data with other prashti (and ping echo)
  */
 public class ZooKeeper {
     public static Long HB_TIME_THRESHOLD = 10000L; // milliseconds

@@ -16,5 +16,82 @@
 
 package in.cs654.chariot.turagraksa;
 
+import com.rabbitmq.client.*;
+import in.cs654.chariot.ashva.AshvaProcessor;
+import in.cs654.chariot.avro.BasicRequest;
+import in.cs654.chariot.avro.BasicResponse;
+import in.cs654.chariot.utils.ResponseFactory;
+import org.apache.avro.io.*;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificDatumWriter;
+
+import java.io.ByteArrayOutputStream;
+import java.util.logging.Logger;
+
 public class ZooKeeperServer {
+    public static final String RPC_QUEUE_NAME = "rpc_queue_zookeeper";
+    private static final Logger LOGGER = Logger.getLogger(ZooKeeperServer.class.getName());
+    private static final String HOST_IP_ADDR = "0.0.0.0";
+    private static BinaryDecoder decoder = null;
+    private static BinaryEncoder encoder = null;
+    private static ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+    public static void main(String[] args) {
+        Connection connection = null;
+        Channel channel;
+        try {
+            final ConnectionFactory factory = new ConnectionFactory();
+            factory.setHost(HOST_IP_ADDR);
+            connection = factory.newConnection();
+            channel = connection.createChannel();
+            channel.queueDeclare(RPC_QUEUE_NAME, false, false, false, null);
+            channel.basicQos(1);
+
+            final QueueingConsumer consumer = new QueueingConsumer(channel);
+            channel.basicConsume(RPC_QUEUE_NAME, false, consumer);
+            LOGGER.info("ZooKeeper Server started. Waiting for requests...");
+
+            while (true) {
+                final QueueingConsumer.Delivery delivery = consumer.nextDelivery();
+                BasicResponse response = new BasicResponse();
+                BasicRequest request = new BasicRequest();
+                final AMQP.BasicProperties props = delivery.getProperties();
+                final AMQP.BasicProperties replyProps = new AMQP.BasicProperties.Builder()
+                        .correlationId(props.getCorrelationId()).build();
+                try {
+                    final DatumReader<BasicRequest> avroReader =
+                            new SpecificDatumReader<BasicRequest>(BasicRequest.class);
+                    decoder = DecoderFactory.get().binaryDecoder(delivery.getBody(), decoder);
+                    request = avroReader.read(request, decoder);
+                    response = AshvaProcessor.process(request);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    LOGGER.severe("Error in handling request: " + e.getMessage());
+                    response = ResponseFactory.getErrorResponse(request);
+
+                } finally {
+                    baos.reset();
+                    final DatumWriter<BasicResponse> avroWriter =
+                            new SpecificDatumWriter<BasicResponse>(BasicResponse.class);
+                    encoder = EncoderFactory.get().binaryEncoder(baos, encoder);
+                    avroWriter.write(response, encoder);
+                    encoder.flush();
+                    LOGGER.info("Responding to request id " + request.getRequestId() + " " + response.getStatus());
+                    channel.basicPublish("", props.getReplyTo(), replyProps, baos.toByteArray());
+                    channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.severe("Error in RPC server: " + e.getMessage());
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (Exception ignore) {
+                }
+            }
+        }
+    }
 }

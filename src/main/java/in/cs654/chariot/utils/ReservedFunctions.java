@@ -20,18 +20,24 @@ package in.cs654.chariot.utils;
  * This enum lists the reserved functions in chariot framework
  * Reserved functions are handled differently than usual task processing which is done by Ashva servers.
  * Following is a brief explanation of all the enums:
- * DEVICE_SETUP : New devices send (id, dockerImageName) to Prashti to register themselves.
- *                Prashti server receives this request and forwards DEVICE_INSTALL request to all servers, including
- *                all Ashva and Prashti.
- * DEVICE_INSTALL : Prashti sends this request to all servers to install a device, by adding it's information in their
- *                  database and docker pull the specified docker image
- * HEARTBEAT    : All servers send this request to Prashti at some interval of time.
+ *
+ * DEVICE_SETUP    : New devices send (id, dockerImageName) to Prashti to register themselves.
+ *                   Prashti server receives this request and forwards DEVICE_INSTALL request to all Ashva servers
+ *
+ * DEVICE_INSTALL  : Prashti sends this request to all ashva servers to install a device, by adding it's information in
+ *                   their database and docker pull the specified docker image
+ *
+ * HEARTBEAT       : All ashva servers send this request to Prashti at some interval of time.
+ *
+ * BECOME_PRASHTI2 : Existing (single) prashti's Zookeeper sends this to an ashva to start its prashti server and
+ *                   become the second prashti server.
  *
  */
 public enum ReservedFunctions {
     DEVICE_SETUP ("chariotDeviceSetup"),
     DEVICE_INSTALL ("chariotDeviceInstall"),
-    HEARTBEAT ("chariotHeartbeat");
+    HEARTBEAT ("chariotHeartbeat"),
+    BECOME_PRASHTI2 ("chariotBecomePrashti2");
 
     private final String name;
 

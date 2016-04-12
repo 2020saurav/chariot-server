@@ -1,11 +1,9 @@
 ### TODO
-* Database module
-* Dynamic Discovery component
-* New device setup manager
-* Heartbeat
+* DEVICE_INSTALL
+* Heartbeat (ZK)
 * Prashti selection
-* Authentication module
-* Sync manager
-* Recovery manager and fault tolerance
+* Sync manager (ZK)
+* Recovery manager and fault tolerance (ZK)
 * Load balancing and scheduling
+* Java docs and Logging
 * Complete this readme
