@@ -19,18 +19,22 @@ package in.cs654.chariot.utils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import in.cs654.chariot.avro.BasicRequest;
+import in.cs654.chariot.avro.BasicResponse;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.*;
 
 public class D2Client {
 
     public static final String d2ServiceURL = "http://172.27.25.236:4567/prashtis";
-
+    public static final long D2_PING_TIMEOUT = 2000; // milliseconds
     public static List<Prashti> getPrashtiServers() {
         List<Prashti> prashtiList = new ArrayList<Prashti>();
         try {
@@ -41,10 +45,38 @@ public class D2Client {
             JsonElement element = parser.parse(in.readLine());
             JsonArray jsonArray = element.getAsJsonArray();
             for (JsonElement e : jsonArray) {
-                prashtiList.add(new Prashti(e.getAsJsonObject().get("ipAddr").getAsString()));
+                final String ipAddr = e.getAsJsonObject().get("ipAddr").getAsString();
+                if (!ipAddr.equals("") && isActive(ipAddr)) {
+                    prashtiList.add(new Prashti(ipAddr));
+                }
             }
         } catch (Exception ignore) {
         }
         return prashtiList;
+    }
+
+    private static boolean isActive(final String ipAddr) {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        Callable<BasicResponse> task = new Callable<BasicResponse>() {
+            @Override
+            public BasicResponse call() throws Exception {
+                PrashtiClient client = new PrashtiClient(ipAddr);
+                BasicRequest request = BasicRequest.newBuilder()
+                        .setRequestId(CommonUtils.randomString(32))
+                        .setArguments(new ArrayList<String>())
+                        .setDeviceId("D2")
+                        .setExtraData(new HashMap<String, String>())
+                        .setFunctionName(ReservedFunctions.PING.toString())
+                        .build();
+                return client.call(request);
+            }
+        };
+        Future<BasicResponse> future = executorService.submit(task);
+        try {
+            BasicResponse ignore = future.get(D2_PING_TIMEOUT, TimeUnit.MILLISECONDS);
+            return true;
+        } catch (Exception ignore) {
+            return false;
+        }
     }
 }

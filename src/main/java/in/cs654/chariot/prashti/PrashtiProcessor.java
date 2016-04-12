@@ -38,6 +38,8 @@ public class PrashtiProcessor {
             }
             return ResponseFactory.getEmptyResponse(request);
 
+        } else if (request.getFunctionName().equals(ReservedFunctions.PING.toString())) {
+            return ResponseFactory.getEmptyResponse(request);
         } else {
             // TODO
             return new BasicResponse(); // fill in appropriate information in response

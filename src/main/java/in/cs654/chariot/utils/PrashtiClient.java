@@ -53,6 +53,22 @@ public class PrashtiClient {
         setupPrashtiClient();
     }
 
+    public PrashtiClient(String ipAddr) {
+        factory.setHost(ipAddr);
+        try {
+            connection = factory.newConnection();
+            channel = connection.createChannel();
+            replyQueueName = channel.queueDeclare().getQueue();
+            consumer = new QueueingConsumer(channel);
+            channel.basicConsume(replyQueueName, true, consumer);
+            baos = new ByteArrayOutputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void setupPrashtiClient() {
         // TODO handle empty list case
         prashtiServer = D2Client.getPrashtiServers().get(0);

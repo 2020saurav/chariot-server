@@ -32,12 +32,15 @@ package in.cs654.chariot.utils;
  * BECOME_PRASHTI2 : Existing (single) prashti's Zookeeper sends this to an ashva to start its prashti server and
  *                   become the second prashti server.
  *
+ * PING            : D2Client sends PING to Prashti to check if it is up
+ *
  */
 public enum ReservedFunctions {
     DEVICE_SETUP ("chariotDeviceSetup"),
     DEVICE_INSTALL ("chariotDeviceInstall"),
     HEARTBEAT ("chariotHeartbeat"),
-    BECOME_PRASHTI2 ("chariotBecomePrashti2");
+    BECOME_PRASHTI2 ("chariotBecomePrashti2"),
+    PING ("chariotPing");
 
     private final String name;
 

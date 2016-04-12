@@ -58,6 +58,12 @@ public class AshvaServer {
             channel.basicConsume(RPC_QUEUE_NAME, false, consumer);
             LOGGER.info("Ashva Server started. Waiting for requests...");
 
+            // TODO
+            // when this ashva comes up. ask D2 for prashti.
+            // if some prashti is up, send heartbeat to ZK on the prashti
+            // else take control. start your prashti server and ZK
+            //      inform D2 about this.
+
             while (true) {
                 final QueueingConsumer.Delivery delivery = consumer.nextDelivery();
                 BasicResponse response = new BasicResponse();
