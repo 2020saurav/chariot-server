@@ -23,6 +23,7 @@ import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
+import in.cs654.chariot.utils.ResponseFactory;
 import org.apache.avro.io.*;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
@@ -74,7 +75,7 @@ public class AshvaServer {
                 } catch (Exception e) {
                     e.printStackTrace();
                     LOGGER.severe("Error in handling request: " + e.getMessage());
-                    response = AshvaProcessor.error(request);
+                    response = ResponseFactory.getErrorResponse(request);
 
                 } finally {
                     baos.reset();

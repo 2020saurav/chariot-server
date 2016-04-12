@@ -21,13 +21,14 @@ import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.utils.Ashva;
 import in.cs654.chariot.utils.AshvaClient;
 import in.cs654.chariot.utils.ReservedFunctions;
+import in.cs654.chariot.utils.ResponseFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 /**
- * This class contains method to process requests to generate responses, and to generate error responses.
+ * This class contains method to process requests to generate responses.
  * Based on the list of reservedFunctions (function names which will not be allowed at Ashva level), this method
  * will run the request on Prashti (for calls like setup new device, heartbeat etc) or forward to Ashva for execution
  */
@@ -49,21 +50,7 @@ public class RequestProcessor {
             return response;
         } catch (Exception e) {
             e.printStackTrace();
-            return error(request);
+            return ResponseFactory.getErrorResponse(request);
         }
-    }
-
-    /**
-     * Method to build response for ERROR case
-     * @param request request object
-     * @return response with status ERROR
-     */
-    public static BasicResponse error(BasicRequest request) {
-        return BasicResponse.newBuilder()
-                .setResponse(new HashMap<String, String>())
-                .setFunctionName(request.getFunctionName())
-                .setRequestId(request.getRequestId())
-                .setStatus("ERROR")
-                .build();
     }
 }

@@ -18,7 +18,9 @@ package in.cs654.chariot.prashti;
 
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
-import in.cs654.chariot.utils.ReservedFunctions;
+import in.cs654.chariot.utils.*;
+
+import java.util.List;
 
 // TODO javadoc
 public class PrashtiProcessor {
@@ -26,11 +28,16 @@ public class PrashtiProcessor {
     public static BasicResponse process(BasicRequest request) {
 
         if (request.getFunctionName().equals(ReservedFunctions.DEVICE_SETUP.toString())) {
-            /*
-            TODO Inform all servers to setup this new device
-            - actual inclusion of information in database to be handled in DEVICE_INSTALL
-             */
-            return new BasicResponse(); // fill in appropriate information in response
+            String dockerImage = request.getExtraData().get("dockerImage");
+            Device device = new Device(request.getDeviceId(), dockerImage);
+            BasicRequest installRequest = RequestFactory.getInstallRequest(device);
+            List<Ashva> ashvaList = Mongo.getAliveAshvaList();
+            for (Ashva ashva : ashvaList) {
+                AshvaClient client = new AshvaClient(ashva.getIpAddr());
+                client.call(installRequest);
+            }
+            return ResponseFactory.getEmptyResponse(request);
+
         } else if (request.getFunctionName().equals(ReservedFunctions.DEVICE_INSTALL.toString())) {
             /*
             TODO install this device dependencies and update database.

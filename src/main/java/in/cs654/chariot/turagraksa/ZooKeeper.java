@@ -27,4 +27,5 @@ package in.cs654.chariot.turagraksa;
  * - syncing data with other prashti
  */
 public class ZooKeeper {
+    public static Long HB_TIME_THRESHOLD = 10000L; // milliseconds
 }

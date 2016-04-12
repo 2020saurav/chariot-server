@@ -20,7 +20,11 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import in.cs654.chariot.turagraksa.ZooKeeper;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class contains all required functions for database operations required in this application.
@@ -79,5 +83,18 @@ public class Mongo {
     public static void deleteHeartbeatByIP(String ipAddr) {
         final FindIterable<Document> docs = heartbeatCollection.find(new Document("_id", ipAddr));
         heartbeatCollection.deleteOne(docs.first());
+    }
+
+    public static List<Ashva> getAliveAshvaList() {
+        final List<Ashva> ashvaList = new ArrayList<Ashva>();
+        final Long currentTime = System.currentTimeMillis();
+        final FindIterable<Document> docs = heartbeatCollection.find();
+        for (Document doc : docs) {
+            Long tau = currentTime - Long.parseLong(doc.get("last_beat").toString());
+            if (tau < ZooKeeper.HB_TIME_THRESHOLD) {
+                ashvaList.add(new Ashva(doc.get("_id").toString()));
+            }
+        }
+        return ashvaList;
     }
 }

@@ -19,6 +19,8 @@ package in.cs654.chariot.ashva;
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.utils.AvroUtils;
+import in.cs654.chariot.utils.ResponseFactory;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,29 +61,15 @@ public class AshvaProcessor {
                     byte[] bytes = Files.readAllBytes(path);
                     return AvroUtils.bytesToResponse(bytes);
                 } else {
-                    return error(request);
+                    return ResponseFactory.getErrorResponse(request);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                return error(request);
+                return ResponseFactory.getErrorResponse(request);
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return error(request);
+            return ResponseFactory.getErrorResponse(request);
         }
-    }
-
-    /**
-     * Method to build response for ERROR case
-     * @param request request object
-     * @return response with status ERROR
-     */
-    public static BasicResponse error(BasicRequest request) {
-        return BasicResponse.newBuilder()
-                .setFunctionName(request.getFunctionName())
-                .setRequestId(request.getRequestId())
-                .setStatus("ERROR")
-                .setResponse(new HashMap<String, String>())
-                .build();
     }
 }
