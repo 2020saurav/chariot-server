@@ -17,7 +17,6 @@
 package in.cs654.chariot.turagraksa;
 
 import com.rabbitmq.client.*;
-import in.cs654.chariot.ashva.AshvaProcessor;
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.utils.ResponseFactory;
@@ -63,7 +62,7 @@ public class ZooKeeperServer {
                             new SpecificDatumReader<BasicRequest>(BasicRequest.class);
                     decoder = DecoderFactory.get().binaryDecoder(delivery.getBody(), decoder);
                     request = avroReader.read(request, decoder);
-                    response = AshvaProcessor.process(request);
+                    response = ZooKeeperProcessor.process(request);
 
                 } catch (Exception e) {
                     e.printStackTrace();
