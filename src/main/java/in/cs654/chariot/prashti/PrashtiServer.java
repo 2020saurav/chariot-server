@@ -23,12 +23,16 @@ import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
+import in.cs654.chariot.utils.CommonUtils;
+import in.cs654.chariot.utils.D2Client;
+import in.cs654.chariot.utils.Prashti;
 import in.cs654.chariot.utils.ResponseFactory;
 import org.apache.avro.io.*;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -58,6 +62,12 @@ public class PrashtiServer {
             final QueueingConsumer consumer = new QueueingConsumer(channel);
             channel.basicConsume(RPC_QUEUE_NAME, false, consumer);
             LOGGER.info("Prashti Server started. Waiting for requests...");
+
+            final List<Prashti> prashtiList = D2Client.getPrashtiServers();
+            String ipAddr = CommonUtils.getIPAddress();
+            prashtiList.add(new Prashti(ipAddr));
+            LOGGER.info("Notifying D2 to set Prashti Server IP Address");
+            D2Client.setPrashtiServers(prashtiList);
 
             while (true) {
                 final QueueingConsumer.Delivery delivery = consumer.nextDelivery();

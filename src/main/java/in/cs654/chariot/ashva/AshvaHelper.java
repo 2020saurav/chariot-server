@@ -28,7 +28,7 @@ public class AshvaHelper {
     private static final Logger LOGGER = Logger.getLogger("Ashva");
 
     public static void joinOrStartChariotPool() {
-        List<Prashti> prashtiList = D2Client.getPrashtiServers();
+        final List<Prashti> prashtiList = D2Client.getPrashtiServers();
         if (prashtiList.size() != 0) {
             final ZooKeeperClient zooKeeperClient = new ZooKeeperClient();
             final String log = "Prashti [" + prashtiList.get(0).getIpAddr() + "] exists. Joining pool.";
@@ -44,16 +44,10 @@ public class AshvaHelper {
             LOGGER.info("No Prashti Server found.");
             try {
                 LOGGER.info("Starting Prashti Server");
-                Process prashtiServerProcess = Runtime.getRuntime().exec("gradle -q rPS > pr.log 2> pr2.log");
                 LOGGER.info("Starting ZooKeeper Server");
-                Process zooKeeperServerProcess = Runtime.getRuntime().exec("gradle -q rZKS > zk.log 2> zk2.log");
-                // TODO move the code below to PrashtiServer.
-                String ipAddr = CommonUtils.getIPAddress();
-                prashtiList.clear();
-                prashtiList.add(new Prashti(ipAddr));
-                LOGGER.info("Notifying D2 to set Prashti Server IP Address");
-                D2Client.setPrashtiServers(prashtiList);
+                Runtime.getRuntime().exec("./chariot.sh");
             } catch (IOException e) {
+                e.printStackTrace();
                 LOGGER.severe("Prashti & ZooKeeper Server initialization failed");
             }
         }
