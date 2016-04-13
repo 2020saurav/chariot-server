@@ -65,7 +65,7 @@ public class ZooKeeperClient {
         }
     }
 
-    public BasicResponse call(BasicRequest request) throws IOException, InterruptedException {
+    public BasicResponse call(BasicRequest request) {
         // TODO profile this to see if rabbitmq calls fixes it or a timeout is needed
         // TODO in case timeout is needed, run setupPrashtiClient() after timeout
         BasicResponse response = new BasicResponse();
@@ -77,18 +77,26 @@ public class ZooKeeperClient {
         baos.reset();
         final DatumWriter<BasicRequest> avroWriter = new SpecificDatumWriter<BasicRequest>(BasicRequest.class);
         encoder = EncoderFactory.get().binaryEncoder(baos, encoder);
-        avroWriter.write(request, encoder);
-        encoder.flush();
-        channel.basicPublish("", requestQueueName, props, baos.toByteArray());
+        try {
+            avroWriter.write(request, encoder);
+            encoder.flush();
+            channel.basicPublish("", requestQueueName, props, baos.toByteArray());
+        } catch (IOException ignore) {
+        }
 
         while (true) {
-            QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-            if (delivery.getProperties().getCorrelationId().equals(corrId)) {
-                final DatumReader<BasicResponse> avroReader =
-                        new SpecificDatumReader<BasicResponse>(BasicResponse.class);
-                decoder = DecoderFactory.get().binaryDecoder(delivery.getBody(), decoder);
-                response = avroReader.read(response, decoder);
-                break;
+            QueueingConsumer.Delivery delivery;
+            try {
+                delivery = consumer.nextDelivery();
+                if (delivery.getProperties().getCorrelationId().equals(corrId)) {
+                    final DatumReader<BasicResponse> avroReader =
+                            new SpecificDatumReader<BasicResponse>(BasicResponse.class);
+                    decoder = DecoderFactory.get().binaryDecoder(delivery.getBody(), decoder);
+                    response = avroReader.read(response, decoder);
+                    break;
+                }
+            } catch (InterruptedException ignore) {
+            } catch (IOException ignore) {
             }
         }
         return response;

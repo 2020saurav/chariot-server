@@ -35,8 +35,8 @@ import java.util.concurrent.*;
 public class D2Client {
 
     public static final String d2ServiceURL = "http://172.27.25.236:4567/prashtis";
-    public static final long D2_PING_TIMEOUT = 2000; // milliseconds
-    public static List<Prashti> getPrashtiServers() {
+    public static final long D2_PING_TIMEOUT = 2000L; // milliseconds
+    public static List<Prashti> getOnlinePrashtiServers() {
         List<Prashti> prashtiList = new ArrayList<Prashti>();
         try {
             URL url = new URL(d2ServiceURL);
@@ -48,6 +48,26 @@ public class D2Client {
             for (JsonElement e : jsonArray) {
                 final String ipAddr = e.getAsJsonObject().get("ipAddr").getAsString();
                 if (!ipAddr.equals("") && isActive(ipAddr)) {
+                    prashtiList.add(new Prashti(ipAddr));
+                }
+            }
+        } catch (Exception ignore) {
+        }
+        return prashtiList;
+    }
+
+    public static List<Prashti> getPrashtiServers() {
+        List<Prashti> prashtiList = new ArrayList<Prashti>();
+        try {
+            URL url = new URL(d2ServiceURL);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            JsonParser parser = new JsonParser();
+            JsonElement element = parser.parse(in.readLine());
+            JsonArray jsonArray = element.getAsJsonArray();
+            for (JsonElement e : jsonArray) {
+                final String ipAddr = e.getAsJsonObject().get("ipAddr").getAsString();
+                if (!ipAddr.equals("")) {
                     prashtiList.add(new Prashti(ipAddr));
                 }
             }

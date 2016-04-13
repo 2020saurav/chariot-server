@@ -28,4 +28,6 @@ package in.cs654.chariot.turagraksa;
  */
 public class ZooKeeper {
     public static Long HB_TIME_THRESHOLD = 10000L; // milliseconds
+    public static Long HB_TIME_ASHVA = 5000L;
+
 }

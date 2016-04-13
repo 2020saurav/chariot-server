@@ -30,8 +30,10 @@ import org.apache.avro.specific.SpecificDatumWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 /**
  * This class used to create client objects for making calls to PrashtiServer.
@@ -48,6 +50,7 @@ public class PrashtiClient {
     private ByteArrayOutputStream baos;
     final ConnectionFactory factory = new ConnectionFactory();
     Prashti prashtiServer = null;
+    final static Logger LOGGER = Logger.getLogger("Prashti Client");
 
     public PrashtiClient() {
         setupPrashtiClient();
@@ -70,21 +73,25 @@ public class PrashtiClient {
     }
 
     private void setupPrashtiClient() {
-        // TODO handle empty list case
-        prashtiServer = D2Client.getPrashtiServers().get(0);
-        factory.setHost(prashtiServer.getIpAddr());
-        try {
-            connection = factory.newConnection();
-            channel = connection.createChannel();
-            replyQueueName = channel.queueDeclare().getQueue();
-            consumer = new QueueingConsumer(channel);
-            channel.basicConsume(replyQueueName, true, consumer);
-            baos = new ByteArrayOutputStream();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-            setupPrashtiClient(); // TODO profile this
+        List<Prashti> prashtiList = D2Client.getPrashtiServers();
+        if (prashtiList.size() > 0) {
+            prashtiServer = D2Client.getPrashtiServers().get(0);
+            factory.setHost(prashtiServer.getIpAddr());
+            try {
+                connection = factory.newConnection();
+                channel = connection.createChannel();
+                replyQueueName = channel.queueDeclare().getQueue();
+                consumer = new QueueingConsumer(channel);
+                channel.basicConsume(replyQueueName, true, consumer);
+                baos = new ByteArrayOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+                setupPrashtiClient(); // TODO profile this
+            }
+        } else {
+            LOGGER.severe("No Prashti available");
         }
     }
 

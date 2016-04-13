@@ -59,6 +59,7 @@ public class AshvaServer {
             LOGGER.info("Ashva Server started. Waiting for requests...");
 
             AshvaHelper.joinOrStartChariotPool();
+            AshvaHelper.startHeartbeat();
 
             while (true) {
                 final QueueingConsumer.Delivery delivery = consumer.nextDelivery();

@@ -63,7 +63,7 @@ public class PrashtiServer {
             channel.basicConsume(RPC_QUEUE_NAME, false, consumer);
             LOGGER.info("Prashti Server started. Waiting for requests...");
 
-            final List<Prashti> prashtiList = D2Client.getPrashtiServers();
+            final List<Prashti> prashtiList = D2Client.getOnlinePrashtiServers();
             String ipAddr = CommonUtils.getIPAddress();
             prashtiList.add(new Prashti(ipAddr));
             LOGGER.info("Notifying D2 to set Prashti Server IP Address");
