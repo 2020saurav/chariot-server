@@ -75,7 +75,7 @@ public class PrashtiClient {
     private void setupPrashtiClient() {
         List<Prashti> prashtiList = D2Client.getPrashtiServers();
         if (prashtiList.size() > 0) {
-            prashtiServer = D2Client.getPrashtiServers().get(0);
+            prashtiServer = prashtiList.get(0);
             factory.setHost(prashtiServer.getIpAddr());
             try {
                 connection = factory.newConnection();

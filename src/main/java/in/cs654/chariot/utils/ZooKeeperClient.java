@@ -26,8 +26,10 @@ import org.apache.avro.specific.SpecificDatumWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 public class ZooKeeperClient {
 
@@ -41,27 +43,32 @@ public class ZooKeeperClient {
     private ByteArrayOutputStream baos;
     final ConnectionFactory factory = new ConnectionFactory();
     Prashti prashtiServer = null;
+    final static Logger LOGGER = Logger.getLogger("ZooKeeper Client");
 
     public ZooKeeperClient() {
         setupZooKeeperClient();
     }
 
     private void setupZooKeeperClient() {
-        // TODO handle empty list case
-        prashtiServer = D2Client.getPrashtiServers().get(0); // since ZooKeeper will run on Prashti, get prashti
-        factory.setHost(prashtiServer.getIpAddr());
-        try {
-            connection = factory.newConnection();
-            channel = connection.createChannel();
-            replyQueueName = channel.queueDeclare().getQueue();
-            consumer = new QueueingConsumer(channel);
-            channel.basicConsume(replyQueueName, true, consumer);
-            baos = new ByteArrayOutputStream();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-           setupZooKeeperClient(); // TODO profile this
+        List<Prashti> prashtiList = D2Client.getPrashtiServers();
+        if (prashtiList.size() > 0) {
+            prashtiServer = prashtiList.get(0); // since ZooKeeper will run on Prashti, get prashti
+            factory.setHost(prashtiServer.getIpAddr());
+            try {
+                connection = factory.newConnection();
+                channel = connection.createChannel();
+                replyQueueName = channel.queueDeclare().getQueue();
+                consumer = new QueueingConsumer(channel);
+                channel.basicConsume(replyQueueName, true, consumer);
+                baos = new ByteArrayOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+                setupZooKeeperClient(); // TODO profile this
+            }
+        } else {
+            LOGGER.severe("No Prashti available");
         }
     }
 
