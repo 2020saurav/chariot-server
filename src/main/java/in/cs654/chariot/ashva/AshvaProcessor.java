@@ -19,6 +19,7 @@ package in.cs654.chariot.ashva;
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.utils.AvroUtils;
+import in.cs654.chariot.utils.ReservedFunctions;
 import in.cs654.chariot.utils.ResponseFactory;
 
 import java.io.FileOutputStream;
@@ -45,31 +46,36 @@ public class AshvaProcessor {
      * @return response of the request
      */
     public static BasicResponse process(BasicRequest request) {
-        final String requestID = request.getRequestId();
-        try {
-            final byte[] serializedBytes = AvroUtils.requestToBytes(request);
-            final FileOutputStream fos = new FileOutputStream("/tmp/" + requestID + ".req");
-            fos.write(serializedBytes);
-            fos.close();
-            // TODO ReservedFunctions.DEVICE_INSTALL needs to be handled separately
-            // TODO fetch docker image name from DB based on device_id
-            final String cmd = "docker run -v /tmp:/tmp 2020saurav/chariot:1.0 /bin/chariot " + requestID;
-            final Process process = Runtime.getRuntime().exec(cmd);
+        if (request.getFunctionName().equals(ReservedFunctions.DEVICE_INSTALL.toString())) {
+            return null;
+        } else if (request.getFunctionName().equals(ReservedFunctions.BECOME_PRASHTI2.toString())) {
+            return null;
+        } else {
+            final String requestID = request.getRequestId();
             try {
-                if (process.waitFor(10L, TimeUnit.SECONDS)) {
-                    final Path path = Paths.get("/tmp/" + requestID + ".res");
-                    byte[] bytes = Files.readAllBytes(path);
-                    return AvroUtils.bytesToResponse(bytes);
-                } else {
+                final byte[] serializedBytes = AvroUtils.requestToBytes(request);
+                final FileOutputStream fos = new FileOutputStream("/tmp/" + requestID + ".req");
+                fos.write(serializedBytes);
+                fos.close();
+                // TODO fetch docker image name from DB based on device_id
+                final String cmd = "docker run -v /tmp:/tmp 2020saurav/chariot:1.0 /bin/chariot " + requestID;
+                final Process process = Runtime.getRuntime().exec(cmd);
+                try {
+                    if (process.waitFor(10L, TimeUnit.SECONDS)) {
+                        final Path path = Paths.get("/tmp/" + requestID + ".res");
+                        byte[] bytes = Files.readAllBytes(path);
+                        return AvroUtils.bytesToResponse(bytes);
+                    } else {
+                        return ResponseFactory.getErrorResponse(request);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                     return ResponseFactory.getErrorResponse(request);
                 }
-            } catch (InterruptedException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
                 return ResponseFactory.getErrorResponse(request);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseFactory.getErrorResponse(request);
         }
     }
 }

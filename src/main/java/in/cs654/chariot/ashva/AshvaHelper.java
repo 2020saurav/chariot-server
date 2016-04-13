@@ -20,8 +20,6 @@ import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.utils.*;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -46,16 +44,11 @@ public class AshvaHelper {
             LOGGER.info("No Prashti Server found.");
             try {
                 LOGGER.info("Starting Prashti Server");
-                Process prashtiServerProcess = Runtime.getRuntime().exec("gradle -q rPS");
+                Process prashtiServerProcess = Runtime.getRuntime().exec("gradle -q rPS > pr.log 2> pr2.log");
                 LOGGER.info("Starting ZooKeeper Server");
-                Process zooKeeperServerProcess = Runtime.getRuntime().exec("gradle -q rZKS");
-                InetAddress IP;
-                String ipAddr = "";
-                try {
-                    IP = InetAddress.getLocalHost();
-                    ipAddr = IP.getHostAddress();
-                } catch (UnknownHostException ignore) {
-                }
+                Process zooKeeperServerProcess = Runtime.getRuntime().exec("gradle -q rZKS > zk.log 2> zk2.log");
+                // TODO move the code below to PrashtiServer.
+                String ipAddr = CommonUtils.getIPAddress();
                 prashtiList.clear();
                 prashtiList.add(new Prashti(ipAddr));
                 LOGGER.info("Notifying D2 to set Prashti Server IP Address");

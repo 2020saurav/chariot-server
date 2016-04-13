@@ -16,6 +16,8 @@
 
 package in.cs654.chariot.utils;
 
+import java.net.*;
+import java.util.Enumeration;
 import java.util.Random;
 
 public class CommonUtils {
@@ -27,5 +29,26 @@ public class CommonUtils {
             buf.append(chars.charAt(rand.nextInt(chars.length())));
         }
         return buf.toString();
+    }
+
+    public static String getIPAddress() {
+        try {
+            NetworkInterface niEth0 = NetworkInterface.getByName("eth0");
+            NetworkInterface niWlan0 = NetworkInterface.getByName("wlan0");
+            for (Enumeration en = niEth0.getInetAddresses(); en.hasMoreElements();) {
+                InetAddress addr = (InetAddress) en.nextElement();
+                if (addr instanceof Inet4Address) {
+                    return addr.getHostAddress();
+                }
+            }
+            for (Enumeration en = niWlan0.getInetAddresses(); en.hasMoreElements();) {
+                InetAddress addr = (InetAddress) en.nextElement();
+                if (addr instanceof Inet4Address) {
+                    return addr.getHostAddress();
+                }
+            }
+        } catch (SocketException ignore) {
+        }
+        return "";
     }
 }

@@ -16,9 +16,6 @@
 
 package in.cs654.chariot.utils;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 /**
  * Ashva will periodically send heartbeats to Prashti
  * The two (if at all) prashtis will use their Zookeeper to check on each other (ping-echo)
@@ -48,14 +45,8 @@ public class Heartbeat {
     }
 
     public static Heartbeat buildHeartBeat(String logs) {
-        InetAddress IP;
-        String ipAddr = "";
         String timeOfBeat = ((Long) System.currentTimeMillis()).toString();
-        try {
-            IP = InetAddress.getLocalHost();
-            ipAddr = IP.getHostAddress();
-        } catch (UnknownHostException ignore) {
-        }
+        String ipAddr = CommonUtils.getIPAddress();
         return new Heartbeat(ipAddr, timeOfBeat, logs);
     }
 }
