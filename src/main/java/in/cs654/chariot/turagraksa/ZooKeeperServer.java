@@ -19,6 +19,7 @@ package in.cs654.chariot.turagraksa;
 import com.rabbitmq.client.*;
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
+import in.cs654.chariot.utils.ReservedFunctions;
 import in.cs654.chariot.utils.ResponseFactory;
 import org.apache.avro.io.*;
 import org.apache.avro.specific.SpecificDatumReader;
@@ -76,7 +77,11 @@ public class ZooKeeperServer {
                     encoder = EncoderFactory.get().binaryEncoder(baos, encoder);
                     avroWriter.write(response, encoder);
                     encoder.flush();
-                    LOGGER.info("Responding to request id " + request.getRequestId() + " " + response.getStatus());
+                    if (request.getFunctionName().equals(ReservedFunctions.HEARTBEAT.toString())) {
+                        LOGGER.info("Received heartbeat from " + request.getExtraData().get("ipAddr"));
+                    } else {
+                        LOGGER.info("Responding to request id " + request.getRequestId() + " " + response.getStatus());
+                    }
                     channel.basicPublish("", props.getReplyTo(), replyProps, baos.toByteArray());
                     channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
                 }

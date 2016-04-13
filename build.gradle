@@ -85,3 +85,14 @@ test {
         events 'started', 'passed'
     }
 }
+
+task completeJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Chariot',
+                'Implementation-Version': version,
+                'Main-Class': 'in.cs654.chariot.prashti.PrashtiServer'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
