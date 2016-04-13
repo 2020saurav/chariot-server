@@ -51,4 +51,10 @@ public class CommonUtils {
         }
         return "";
     }
+
+    public static int randInt(int min, int max) {
+        Random rn = new Random();
+        int range = max - min + 1;
+        return rn.nextInt(range) + min;
+    }
 }

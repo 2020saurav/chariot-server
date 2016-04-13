@@ -17,11 +17,20 @@
 package in.cs654.chariot.prashti;
 
 import in.cs654.chariot.utils.Ashva;
+import in.cs654.chariot.utils.CommonUtils;
+import in.cs654.chariot.utils.Mongo;
+
+import java.util.List;
+import java.util.logging.Logger;
 
 // TODO javadoc
 public class LoadBalancer {
+    private static final Logger LOGGER = Logger.getLogger("Load Balancer");
     public static Ashva getAshva() {
-        // TODO implement this
-        return new Ashva("0.0.0.0");
+        final List<Ashva> ashvaList = Mongo.getAliveAshvaList();
+        final int randIndex = CommonUtils.randInt(0, ashvaList.size()-1);
+        final Ashva ashva = ashvaList.get(randIndex);
+        LOGGER.info("Returning Ashva ["+ashva.getIpAddr()+"]");
+        return ashva;
     }
 }

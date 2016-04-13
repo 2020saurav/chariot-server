@@ -27,7 +27,7 @@ package in.cs654.chariot.turagraksa;
  * - syncing data with other prashti (and ping echo)
  */
 public class ZooKeeper {
-    public static Long HB_TIME_THRESHOLD = 10000L; // milliseconds
-    public static Long HB_TIME_ASHVA = 5000L;
+    public static Long HB_TIME_THRESHOLD = 30000L; // milliseconds
+    public static Long HB_TIME_ASHVA = 15000L;
 
 }
