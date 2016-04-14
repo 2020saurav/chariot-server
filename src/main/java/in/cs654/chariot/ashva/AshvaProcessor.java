@@ -18,9 +18,7 @@ package in.cs654.chariot.ashva;
 
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
-import in.cs654.chariot.utils.AvroUtils;
-import in.cs654.chariot.utils.ReservedFunctions;
-import in.cs654.chariot.utils.ResponseFactory;
+import in.cs654.chariot.utils.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,7 +44,15 @@ public class AshvaProcessor {
      */
     public static BasicResponse process(BasicRequest request) {
         if (request.getFunctionName().equals(ReservedFunctions.DEVICE_INSTALL.toString())) {
-            return null;
+            final String deviceId = request.getDeviceId();
+            final String dockerImage = request.getExtraData().get("dockerImage");
+            final String cmd = "docker pull " + dockerImage;
+            try {
+                Runtime.getRuntime().exec(cmd);
+                Mongo.addDevice(new Device(deviceId, dockerImage));
+            } catch (IOException ignore) {
+            }
+            return ResponseFactory.getEmptyResponse(request);
         } else if (request.getFunctionName().equals(ReservedFunctions.BECOME_PRASHTI2.toString())) {
             return null;
         } else {
