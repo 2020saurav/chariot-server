@@ -32,11 +32,9 @@ public class AshvaHelper {
         final List<Prashti> prashtiList = D2Client.getOnlinePrashtiServers();
         if (prashtiList.size() != 0) {
             final ZooKeeperClient zooKeeperClient = new ZooKeeperClient();
-            final String log = "Prashti [" + prashtiList.get(0).getIpAddr() + "] exists. Joining pool.";
-            final Heartbeat heartbeat = Heartbeat.buildHeartBeat(log);
-            final BasicRequest request = RequestFactory.getHeartbeatRequest(heartbeat);
+            final BasicRequest request = RequestFactory.getPoolJoinRequest();
             zooKeeperClient.call(request);
-            LOGGER.info(log);
+            LOGGER.info("Prashti [" + prashtiList.get(0).getIpAddr() + "] exists. Joining pool.");
         } else {
             // TODO locking D2 to avoid race condition
             LOGGER.info("No Prashti Server found.");

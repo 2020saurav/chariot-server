@@ -40,6 +40,7 @@ public enum ReservedFunctions {
     DEVICE_INSTALL ("chariotDeviceInstall"),
     HEARTBEAT ("chariotHeartbeat"),
     BECOME_PRASHTI2 ("chariotBecomePrashti2"),
+    JOIN_POOL ("chariotJoinPool"),
     PING ("chariotPing");
 
     private final String name;

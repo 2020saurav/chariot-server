@@ -38,7 +38,7 @@ public class AshvaProcessor {
     /**
      * This function takes in request, executes the request and returns the response.
      * The request is written into /tmp/<request_id>.req file. While running the docker container, /tmp dir is mounted
-     * to /tmp of the container. This enables ease of data exchange. TODO (wont do) a key may be kept to encrypt and decrypt this
+     * to /tmp of the container. This enables ease of data exchange. TODO encryption
      * Docker runs the request and puts the result into /tmp/<request_id>.res. A timeout has been set as 10s, failing
      * which error response is sent.
      * @param request containing function_name and other required information

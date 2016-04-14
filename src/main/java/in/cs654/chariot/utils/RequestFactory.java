@@ -18,14 +18,13 @@ package in.cs654.chariot.utils;
 
 import in.cs654.chariot.avro.BasicRequest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 public class RequestFactory {
 
     public static BasicRequest getSetupRequest(Device device) {
-        Map<String, String> map = new HashMap<String, String>();
+        final Map<String, String> map = new HashMap<String, String>();
         map.put("dockerImage", device.getDockerImage());
         return BasicRequest.newBuilder()
                 .setDeviceId(device.getId())
@@ -37,7 +36,7 @@ public class RequestFactory {
     }
 
     public static BasicRequest getInstallRequest(Device device) {
-        Map<String, String> map = new HashMap<String, String>();
+        final Map<String, String> map = new HashMap<String, String>();
         map.put("dockerImage", device.getDockerImage());
         return BasicRequest.newBuilder()
                 .setDeviceId(device.getId())
@@ -49,13 +48,27 @@ public class RequestFactory {
     }
 
     public static BasicRequest getHeartbeatRequest(Heartbeat heartbeat) {
-        Map<String, String> map = new HashMap<String, String>();
+        final Map<String, String> map = new HashMap<String, String>();
         map.put("ipAddr", heartbeat.getIpAddr());
         map.put("timeOfBeat", heartbeat.getTimeOfBeat());
         map.put("logs", heartbeat.getLogs());
         return BasicRequest.newBuilder()
                 .setDeviceId(heartbeat.getIpAddr())
                 .setFunctionName(ReservedFunctions.HEARTBEAT.toString())
+                .setRequestId(CommonUtils.randomString(32))
+                .setArguments(new ArrayList<String>())
+                .setExtraData(map)
+                .build();
+    }
+
+    public static BasicRequest getPoolJoinRequest() {
+        final List<Device> devices = Mongo.getAllDevices();
+        final String serializedString = Device.serializeDeviceList(devices);
+        final Map<String, String> map = new HashMap<String, String>();
+        map.put("devicesString", serializedString);
+        return BasicRequest.newBuilder()
+                .setDeviceId(CommonUtils.getIPAddress())
+                .setFunctionName(ReservedFunctions.JOIN_POOL.toString())
                 .setRequestId(CommonUtils.randomString(32))
                 .setArguments(new ArrayList<String>())
                 .setExtraData(map)

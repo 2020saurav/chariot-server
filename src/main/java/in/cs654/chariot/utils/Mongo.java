@@ -56,6 +56,15 @@ public class Mongo {
         devicesCollection.deleteOne(docs.first());
     }
 
+    public static List<Device> getAllDevices() {
+        final List<Device> devices = new ArrayList<Device>();
+        final FindIterable<Document> docs = devicesCollection.find();
+        for (Document doc : docs) {
+            devices.add(new Device(doc.get("_id").toString(), doc.get("dockerImage").toString()));
+        }
+        return devices;
+    }
+
     public static void updateHeartbeat(Heartbeat heartbeat) {
         final Long timeLag = System.currentTimeMillis() - Long.parseLong(heartbeat.getTimeOfBeat());
         final Document doc = heartbeatCollection.find(new Document("_id", heartbeat.getIpAddr())).first();

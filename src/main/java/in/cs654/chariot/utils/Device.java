@@ -16,7 +16,12 @@
 
 package in.cs654.chariot.utils;
 
-public class Device {
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+
+public class Device implements Serializable {
 
     private String id;
     private String dockerImage;
@@ -40,5 +45,30 @@ public class Device {
 
     public void setDockerImage(String dockerImage) {
         this.dockerImage = dockerImage;
+    }
+
+    public static String serializeDeviceList(List<Device> devices) {
+        String serialized = "";
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(devices);
+            oos.flush();
+            oos.close();
+            serialized = Base64.getEncoder().encodeToString(baos.toByteArray());
+        } catch (IOException ignore) {
+        }
+        return serialized;
+    }
+
+    public static List<Device> deserializeDeviceListString(String serializedString) {
+        List<Device> devices = new ArrayList<Device>();
+        try {
+            byte[] data = Base64.getDecoder().decode(serializedString);
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
+            devices = (ArrayList) ois.readObject();
+        } catch (Exception ignore) {
+        }
+        return devices;
     }
 }
