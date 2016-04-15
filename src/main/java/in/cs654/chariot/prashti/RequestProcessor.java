@@ -26,6 +26,7 @@ import in.cs654.chariot.utils.ResponseFactory;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * This class contains method to process requests to generate responses.
@@ -33,6 +34,7 @@ import java.util.List;
  * (for calls like setup new device, heartbeat etc) or forward to Ashva for execution
  */
 public class RequestProcessor {
+    private static final Logger LOGGER = Logger.getLogger("Prashti Request Processor");
 
     /**
      * This method checks if the request is to be handled at Prashti or be forwarded to Ashva
@@ -48,6 +50,7 @@ public class RequestProcessor {
             final AshvaClient client = new AshvaClient(ashva.getIpAddr());
             return client.call(request);
         } catch (Exception ignore) {
+            LOGGER.severe("Error in sending request to Ashva");
             return ResponseFactory.getErrorResponse(request);
         }
     }

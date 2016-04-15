@@ -51,8 +51,7 @@ class AshvaHelper {
             try {
                 LOGGER.info("Starting Prashti and ZooKeeper Server");
                 Runtime.getRuntime().exec("./chariot.sh");
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ignore) {
                 LOGGER.severe("Prashti & ZooKeeper Server initialization failed");
             }
         }
@@ -72,6 +71,8 @@ class AshvaHelper {
                         final ZooKeeperClient client = new ZooKeeperClient(); // Old ZooKeeper may have gone away
                         client.call(RequestFactory.getHeartbeatRequest(heartbeat));
                     } catch (InterruptedException ignore) {
+                        LOGGER.severe("Error in heartbeat. Retrying..");
+                        run();
                     }
                 }
             }

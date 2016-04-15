@@ -34,7 +34,6 @@ public class AshvaProcessor {
     private static final Logger LOGGER = Logger.getLogger("Ashva Processor");
     public static final Long PROCESS_DEFAULT_TIMEOUT = 5000L; // milliseconds
 
-
     /**
      * This function handles all the requests routed to it. It matches the request against the following:
      * DEVICE_INSTALL : This requires the ashva server to install (pull the docker image corresponding to) the device
@@ -66,7 +65,9 @@ public class AshvaProcessor {
         try {
             Runtime.getRuntime().exec(cmd);
             Mongo.addDevice(new Device(deviceId, dockerImage));
+            LOGGER.info("Pulled docker image " + dockerImage + " for device " + deviceId);
         } catch (IOException ignore) {
+            LOGGER.severe("Error in installing device " + deviceId + " (" + dockerImage + ")");
         }
         return ResponseFactory.getEmptyResponse(request);
     }
@@ -83,6 +84,7 @@ public class AshvaProcessor {
             LOGGER.info("Starting Prashti and ZooKeeper Server");
             Runtime.getRuntime().exec("./chariot.sh");
         } catch (IOException ignore) {
+            LOGGER.severe("Error in starting Prashti and Zookeeper servers");
         }
         return ResponseFactory.getEmptyResponse(request);
     }
@@ -121,19 +123,22 @@ public class AshvaProcessor {
                 if (timeoutProcess.exit != null) {
                     File file = new File("/tmp/" + requestID + ".res");
                     byte[] bytes = FileUtils.readFileToByteArray(file);
+                    LOGGER.info("Response generated for request " + requestID);
                     return AvroUtils.bytesToResponse(bytes);
                 } else {
+                    LOGGER.severe("Timeout in generating response for request " + requestID);
                     return ResponseFactory.getTimeoutErrorResponse(request);
                 }
             } catch (InterruptedException ignore) {
                 timeoutProcess.interrupt();
                 Thread.currentThread().interrupt();
+                LOGGER.severe("Error in generating response for request " + requestID);
                 return ResponseFactory.getErrorResponse(request);
             } finally {
                 process.destroy();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignore) {
+            LOGGER.severe("Error in generating response for request: " + requestID);
             return ResponseFactory.getErrorResponse(request);
         }
     }
