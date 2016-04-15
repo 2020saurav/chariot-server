@@ -39,8 +39,7 @@ public class AshvaHelper {
             // TODO locking D2 to avoid race condition
             LOGGER.info("No Prashti Server found.");
             try {
-                LOGGER.info("Starting Prashti Server");
-                LOGGER.info("Starting ZooKeeper Server");
+                LOGGER.info("Starting Prashti and ZooKeeper Server");
                 Runtime.getRuntime().exec("./chariot.sh");
             } catch (IOException e) {
                 e.printStackTrace();

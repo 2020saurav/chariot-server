@@ -36,6 +36,8 @@ import java.util.List;
  *             Prashti is sent for installation at the ashva. This assumes that Prashti has complete and latest list
  *             of devices. This assumption wont harm because eventually ZooKeeper will keep syncing the device
  *             collection across all ashvas (including the ones which are both ashva and prashti).
+ *             After that, it checks if there are less than 2 prashti servers online, it requests the new ashva to
+ *             become the second prashti. First prashti trivially exists because this zookeeper is running on it.
  */
 public class ZooKeeperProcessor {
     public static BasicResponse process(BasicRequest request) {
@@ -59,10 +61,27 @@ public class ZooKeeperProcessor {
                 final BasicRequest installRequest = RequestFactory.getInstallRequest(d);
                 client.call(installRequest);
             }
+            checkAndBringUpNewPrashti(ipAddr);
             return ResponseFactory.getEmptyResponse(request);
 
         } else {
             return ResponseFactory.getErrorResponse(request);
+        }
+    }
+
+    private static void checkAndBringUpNewPrashti(String ipAddr) {
+        boolean isPresent = false;
+        final List<Prashti> onlinePrashtiList = D2Client.getOnlinePrashtiServers();
+        for (Prashti prashti : onlinePrashtiList) {
+            if (prashti.getIpAddr().equals(ipAddr)) {
+                isPresent = true;
+                break;
+            }
+        }
+        if (D2Client.getOnlinePrashtiServers().size() < 2 && !isPresent) {
+            final AshvaClient client = new AshvaClient(ipAddr);
+            final BasicRequest req = RequestFactory.getBecomePrashti2Request();
+            client.call(req);
         }
     }
 }

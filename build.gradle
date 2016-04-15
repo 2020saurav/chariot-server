@@ -17,6 +17,7 @@ dependencies {
     compile 'org.apache.avro:avro:1.7.7'
     compile 'org.mongodb:mongo-java-driver:3.2.2'
     compile 'com.google.code.gson:gson:2.3.1'
+    compile 'commons-io:commons-io:2.4'
 }
 
 buildscript {
@@ -86,7 +87,7 @@ test {
     }
 }
 
-task completeJar(type: Jar) {
+task buildCompleteJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Chariot',
                 'Implementation-Version': version,
