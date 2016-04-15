@@ -81,11 +81,11 @@ public class AshvaProcessor {
                 final String dockerImage = Mongo.getDockerImage(request.getDeviceId());
                 final String cmd = "docker run -v /tmp:/tmp " + dockerImage + " /bin/chariot " + requestID;
                 final Process process = Runtime.getRuntime().exec(cmd);
-                Worker worker = new Worker(process);
-                worker.start();
+                TimeoutProcess timeoutProcess = new TimeoutProcess(process);
+                timeoutProcess.start();
                 try {
-                    worker.join(timeout); // milliseconds
-                    if (worker.exit != null) {
+                    timeoutProcess.join(timeout); // milliseconds
+                    if (timeoutProcess.exit != null) {
                         File file = new File("/tmp/" + requestID + ".res");
                         byte[] bytes = FileUtils.readFileToByteArray(file);
                         return AvroUtils.bytesToResponse(bytes);
@@ -93,7 +93,7 @@ public class AshvaProcessor {
                         return ResponseFactory.getTimeoutErrorResponse(request);
                     }
                 } catch (InterruptedException ignore) {
-                    worker.interrupt();
+                    timeoutProcess.interrupt();
                     Thread.currentThread().interrupt();
                     return ResponseFactory.getErrorResponse(request);
                 } finally {
@@ -102,20 +102,6 @@ public class AshvaProcessor {
             } catch (IOException e) {
                 e.printStackTrace();
                 return ResponseFactory.getErrorResponse(request);
-            }
-        }
-    }
-
-    private static class Worker extends Thread {
-        private final Process process;
-        private Integer exit;
-        private Worker(Process process) {
-            this.process = process;
-        }
-        public void run() {
-            try {
-                exit = process.waitFor();
-            } catch (InterruptedException ignore) {
             }
         }
     }
