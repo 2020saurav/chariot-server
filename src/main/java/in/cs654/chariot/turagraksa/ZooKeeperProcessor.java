@@ -20,6 +20,7 @@ import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.utils.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,7 +66,15 @@ public class ZooKeeperProcessor {
             checkAndBringUpNewPrashti(ipAddr);
             return ResponseFactory.getEmptyResponse(request);
 
+        } else if (request.getFunctionName().equals(ReservedFunctions.PRASHTI_CHANGE.toString())) {
+            ZooKeeper.resetOtherZooKeeperClient();
+            return ResponseFactory.getEmptyResponse(request);
+
+        } else if (request.getFunctionName().equals(ReservedFunctions.PING.toString())) {
+            return ResponseFactory.getEmptyResponse(request);
+
         } else {
+
             return ResponseFactory.getErrorResponse(request);
         }
     }

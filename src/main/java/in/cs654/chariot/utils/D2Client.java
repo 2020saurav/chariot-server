@@ -120,7 +120,25 @@ public class D2Client {
             stream.flush();
             stream.close();
             connection.getResponseCode();
+            notifyZooKeeperAboutChange();
         } catch (Exception ignore) {
+        }
+    }
+
+    private static void notifyZooKeeperAboutChange() {
+        final BasicRequest request = BasicRequest.newBuilder()
+                .setDeviceId("D2Client")
+                .setRequestId(CommonUtils.randomString(32))
+                .setArguments(new ArrayList<String>())
+                .setFunctionName(ReservedFunctions.PRASHTI_CHANGE.toString())
+                .setExtraData(new HashMap<String, String>())
+                .build();
+        final List<Prashti> prashtiList = getOnlinePrashtiServers();
+        if (prashtiList.size() == 2) {
+            for (Prashti prashti : prashtiList) {
+                final ZooKeeperClient client = new ZooKeeperClient(prashti.getIpAddr());
+                client.call(request);
+            }
         }
     }
 }

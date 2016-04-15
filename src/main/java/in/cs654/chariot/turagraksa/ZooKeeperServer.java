@@ -50,6 +50,7 @@ public class ZooKeeperServer {
             final QueueingConsumer consumer = new QueueingConsumer(channel);
             channel.basicConsume(RPC_QUEUE_NAME, false, consumer);
             LOGGER.info("ZooKeeper Server started. Waiting for requests...");
+            ZooKeeper.startPingEcho();
 
             while (true) {
                 final QueueingConsumer.Delivery delivery = consumer.nextDelivery();

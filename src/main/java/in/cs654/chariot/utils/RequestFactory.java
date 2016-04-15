@@ -98,4 +98,14 @@ public class RequestFactory {
                 .setExtraData(new HashMap<String, String>())
                 .build();
     }
+
+    public static BasicRequest getPingRequest() {
+        return BasicRequest.newBuilder()
+                .setDeviceId(CommonUtils.getIPAddress())
+                .setFunctionName(ReservedFunctions.PING.toString())
+                .setRequestId(CommonUtils.randomString(32))
+                .setArguments(new ArrayList<String>())
+                .setExtraData(new HashMap<String, String>())
+                .build();
+    }
 }

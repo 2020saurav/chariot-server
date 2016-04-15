@@ -39,7 +39,9 @@ package in.cs654.chariot.utils;
  * HB_SYNC         : Zookeeper sends this message to another Zookeeper (if it is online). This is essentially
  *                   forwarding of the heartbeat sent by an Ashva
  *
- * PING            : D2Client sends PING to Prashti to check if it is up
+ * PRASHTI_CHANGE  : D2Client sends
+ *
+ * PING            : D2Client sends PING to Prashti to check if it is up. ZooKeeper also sends PING to other ZK.
  *
  */
 public enum ReservedFunctions {
@@ -49,6 +51,7 @@ public enum ReservedFunctions {
     BECOME_PRASHTI2 ("chariotBecomePrashti2"),
     JOIN_POOL ("chariotJoinPool"),
     HB_SYNC ("chariotHBSync"),
+    PRASHTI_CHANGE ("chariotPrashtiChange"),
     PING ("chariotPing");
 
     private final String name;

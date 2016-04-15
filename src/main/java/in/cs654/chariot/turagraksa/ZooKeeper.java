@@ -17,19 +17,81 @@
 package in.cs654.chariot.turagraksa;
 
 import in.cs654.chariot.avro.BasicRequest;
-import in.cs654.chariot.utils.Heartbeat;
-import in.cs654.chariot.utils.RequestFactory;
-import in.cs654.chariot.utils.ZooKeeperClient;
+import in.cs654.chariot.utils.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 public class ZooKeeper {
     public static final Long HB_TIME_THRESHOLD = 30000L; // milliseconds
     public static final Long HB_TIME_ASHVA = 15000L;
+    public static final Long PING_ECHO_DURATION = 10000L;
     private static ZooKeeperClient otherZooKeeperClient = null;
+    final static Logger LOGGER = Logger.getLogger("ZooKeeper");
 
     static void notifyOtherZooKeeperServer(Heartbeat heartbeat) {
         if (otherZooKeeperClient != null) {
             final BasicRequest request = RequestFactory.getHeartbeatSyncRequest(heartbeat);
             otherZooKeeperClient.call(request);
+        }
+    }
+
+    static void startPingEcho() {
+        final Thread thread = new Thread() {
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(PING_ECHO_DURATION);
+                        if (otherZooKeeperClient != null) {
+                            try {
+                                otherZooKeeperClient.call(RequestFactory.getPingRequest());
+                                LOGGER.info("Other Zookeeper is alive");
+                            } catch (Exception ignore) {
+                                otherZooKeeperClient = null;
+                                LOGGER.warning("Other Zookeeper is down");
+                                // inform D2 that I am the alone Prashti/Zookeeper server
+                                final List<Prashti> prashtiList = new ArrayList<Prashti>();
+                                prashtiList.add(new Prashti(CommonUtils.getIPAddress()));
+                                D2Client.setPrashtiServers(prashtiList);
+                                selectANewPrashti();
+                            }
+                        }
+                    } catch (InterruptedException ignore) {
+                        run();
+                    }
+                }
+            }
+        };
+        thread.start();
+    }
+
+    // D2Client will call this
+    static void resetOtherZooKeeperClient() {
+        List<Prashti> prashtiList = D2Client.getOnlinePrashtiServers();
+        if (prashtiList.size() == 2) {
+            if (!prashtiList.get(0).getIpAddr().equals(CommonUtils.getIPAddress())) {
+                otherZooKeeperClient = new ZooKeeperClient(prashtiList.get(0).getIpAddr());
+            } else {
+                otherZooKeeperClient = new ZooKeeperClient(prashtiList.get(1).getIpAddr());
+            }
+        }
+    }
+
+    private static void selectANewPrashti() {
+        final List<Prashti> onlinePrashtiList = D2Client.getOnlinePrashtiServers();
+        final List<Ashva> onlineAshvaList = Mongo.getAliveAshvaList();
+        final List<String> candidateIPAddresses = new ArrayList<String>();
+        for (Ashva ashva : onlineAshvaList) {
+            candidateIPAddresses.add(ashva.getIpAddr());
+        }
+        for (Prashti prashti : onlinePrashtiList) {
+            candidateIPAddresses.remove(prashti.getIpAddr());
+        }
+        if (candidateIPAddresses.size() > 0) {
+            final AshvaClient client = new AshvaClient(candidateIPAddresses.get(0));
+            final BasicRequest req = RequestFactory.getBecomePrashti2Request();
+            client.call(req);
         }
     }
 }
