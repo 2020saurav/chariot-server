@@ -25,9 +25,16 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-// TODO javadoc
+/**
+ * Helper functions to convert request object to byte array; and byte array to response object
+ */
 public class AvroUtils {
-    // TODO see if baos, encoder and writer can be made this class' objects
+    /**
+     * Function to serialize request object into byte array
+     * @param request object to serialize
+     * @return byte array of the request object
+     * @throws IOException
+     */
     public static byte[] requestToBytes(BasicRequest request) throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(baos, null);
@@ -38,10 +45,15 @@ public class AvroUtils {
         return baos.toByteArray();
     }
 
+    /**
+     * Function to deserialize byte array into response object
+     * @param bytes byte array of serialized object
+     * @return response object
+     * @throws IOException
+     */
     public static BasicResponse bytesToResponse(byte[] bytes) throws IOException {
         final Decoder decoder = DecoderFactory.get().binaryDecoder(bytes, null);
         final DatumReader<BasicResponse> reader = new SpecificDatumReader<BasicResponse>(BasicResponse.class);
-        final BasicResponse response = reader.read(null, decoder);
-        return response;
+        return reader.read(null, decoder);
     }
 }

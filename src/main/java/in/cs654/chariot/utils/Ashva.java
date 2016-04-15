@@ -16,6 +16,9 @@
 
 package in.cs654.chariot.utils;
 
+/**
+ * Class for Ashva entity.
+ */
 public class Ashva {
 
     private String ipAddr;

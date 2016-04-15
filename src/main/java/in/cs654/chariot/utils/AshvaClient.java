@@ -31,9 +31,10 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.TimeoutException;
 
-// TODO add javadoc
+/**
+ * Client class to make calls to Ashva Server
+ */
 public class AshvaClient {
 
     private Connection connection;
@@ -45,6 +46,10 @@ public class AshvaClient {
     private BinaryDecoder decoder = null;
     private ByteArrayOutputStream baos;
 
+    /**
+     * Constructor to build AshvaClient
+     * @param ipAddr IP address of the ashva server
+     */
     public AshvaClient(String ipAddr) {
         final ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(ipAddr);
@@ -59,6 +64,11 @@ public class AshvaClient {
         }
     }
 
+    /**
+     * Function to make RPC call to the server
+     * @param request to make
+     * @return response received
+     */
     public BasicResponse call(BasicRequest request) {
         BasicResponse response = ResponseFactory.getEmptyResponse(request);
         final String corrId = UUID.randomUUID().toString();

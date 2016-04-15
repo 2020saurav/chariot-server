@@ -20,29 +20,45 @@ import java.net.*;
 import java.util.Enumeration;
 import java.util.Random;
 
+/**
+ * Class for common utility functions for chariot-server.
+ */
 public class CommonUtils {
-    public static String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    private final static String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    /**
+     * Function to generate random string of given length
+     * @param length of random string as required
+     * @return random string
+     */
     public static String randomString(int length) {
-        Random rand = new Random();
-        StringBuilder buf = new StringBuilder();
+        final Random rand = new Random();
+        final StringBuilder buf = new StringBuilder();
         for (int i=0; i<length; i++) {
             buf.append(chars.charAt(rand.nextInt(chars.length())));
         }
         return buf.toString();
     }
 
+    /**
+     * This function is used to get IP Address of the host machine. For chariot-server,
+     * it is very likely (only possibility in dev) that it is connected by eth0 or by wlan0.
+     * In that order, if an IP Address is found, it is returned. Not very certain of it's reliability.
+     * @return ipadress of the host machine
+     */
     public static String getIPAddress() {
         try {
-            NetworkInterface niEth0 = NetworkInterface.getByName("eth0");
-            NetworkInterface niWlan0 = NetworkInterface.getByName("wlan0");
+            final NetworkInterface niEth0 = NetworkInterface.getByName("eth0");
+            final NetworkInterface niWlan0 = NetworkInterface.getByName("wlan0");
             for (Enumeration en = niEth0.getInetAddresses(); en.hasMoreElements();) {
-                InetAddress addr = (InetAddress) en.nextElement();
+                final InetAddress addr = (InetAddress) en.nextElement();
                 if (addr instanceof Inet4Address) {
                     return addr.getHostAddress();
                 }
             }
             for (Enumeration en = niWlan0.getInetAddresses(); en.hasMoreElements();) {
-                InetAddress addr = (InetAddress) en.nextElement();
+                final InetAddress addr = (InetAddress) en.nextElement();
                 if (addr instanceof Inet4Address) {
                     return addr.getHostAddress();
                 }
@@ -52,9 +68,15 @@ public class CommonUtils {
         return "";
     }
 
+    /**
+     * Function to get a random integer in range [min, max].
+     * @param min minimum of range
+     * @param max maximum of range
+     * @return random integer in the range
+     */
     public static int randInt(int min, int max) {
-        Random rn = new Random();
-        int range = max - min + 1;
+        final Random rn = new Random();
+        final int range = max - min + 1;
         return rn.nextInt(range) + min;
     }
 }
