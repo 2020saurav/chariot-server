@@ -27,82 +27,114 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
- * This class provides implements 2 methods called process and error to prepare response when the request is fulfilled,
- * or it fails.
+ * This class contains the function process which handles the requests sent to this ashva server.
  */
 public class AshvaProcessor {
 
     private static final Logger LOGGER = Logger.getLogger("Ashva Processor");
     public static final Long PROCESS_DEFAULT_TIMEOUT = 5000L; // milliseconds
 
+
     /**
-     * This function takes in request, executes the request and returns the response.
-     * The request is written into /tmp/<request_id>.req file. While running the docker container, /tmp dir is mounted
-     * to /tmp of the container. This enables ease of data exchange. TODO encryption
-     * Docker runs the request and puts the result into /tmp/<request_id>.res. A timeout has been set as 10s, failing
-     * which error response is sent.
-     * @param request containing function_name and other required information
+     * This function handles all the requests routed to it. It matches the request against the following:
+     * DEVICE_INSTALL : This requires the ashva server to install (pull the docker image corresponding to) the device
+     * BECOME_PRASHTI2 : This required the ashva server to initiate it's prashti and zookeeper servers
+     * @param request to handle
      * @return response of the request
      */
     public static BasicResponse process(BasicRequest request) {
         if (request.getFunctionName().equals(ReservedFunctions.DEVICE_INSTALL.toString())) {
-            final String deviceId = request.getDeviceId();
-            final String dockerImage = request.getExtraData().get("dockerImage");
-            final String cmd = "docker pull " + dockerImage;
-            try {
-                Runtime.getRuntime().exec(cmd);
-                Mongo.addDevice(new Device(deviceId, dockerImage));
-            } catch (IOException ignore) {
-            }
-            return ResponseFactory.getEmptyResponse(request);
-
+            return handleDeviceInstallRequest(request);
         } else if (request.getFunctionName().equals(ReservedFunctions.BECOME_PRASHTI2.toString())) {
-            try {
-                LOGGER.info("Starting Prashti and ZooKeeper Server");
-                Runtime.getRuntime().exec("./chariot.sh");
-            } catch (IOException ignore) {
-            }
-            return ResponseFactory.getEmptyResponse(request);
+            return handleBecomePrashtiRequest(request);
         } else {
-            final String requestID = request.getRequestId();
-            try {
-                final byte[] serializedBytes = AvroUtils.requestToBytes(request);
-                final FileOutputStream fos = new FileOutputStream("/tmp/" + requestID + ".req");
-                fos.write(serializedBytes);
-                fos.close();
-                String timeoutString = request.getExtraData().get("chariot_timeout");
-                Long timeout;
-                if (timeoutString != null) {
-                    timeout = Long.parseLong(timeoutString);
-                } else {
-                    timeout = PROCESS_DEFAULT_TIMEOUT;
-                }
+            return handleTaskProcessingRequest(request);
+        }
+    }
 
-                final String dockerImage = Mongo.getDockerImage(request.getDeviceId());
-                final String cmd = "docker run -v /tmp:/tmp " + dockerImage + " /bin/chariot " + requestID;
-                final Process process = Runtime.getRuntime().exec(cmd);
-                TimeoutProcess timeoutProcess = new TimeoutProcess(process);
-                timeoutProcess.start();
-                try {
-                    timeoutProcess.join(timeout); // milliseconds
-                    if (timeoutProcess.exit != null) {
-                        File file = new File("/tmp/" + requestID + ".res");
-                        byte[] bytes = FileUtils.readFileToByteArray(file);
-                        return AvroUtils.bytesToResponse(bytes);
-                    } else {
-                        return ResponseFactory.getTimeoutErrorResponse(request);
-                    }
-                } catch (InterruptedException ignore) {
-                    timeoutProcess.interrupt();
-                    Thread.currentThread().interrupt();
-                    return ResponseFactory.getErrorResponse(request);
-                } finally {
-                    process.destroy();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                return ResponseFactory.getErrorResponse(request);
+    /**
+     * This function handles device installation request.
+     * It gets the device id and name of the docker image from the request, and then runs docker pull image to
+     * get the image from docker hub.
+     * @param request consisting of (device id, dockerImage)
+     * @return empty response as nothing useful can be returned
+     */
+    private static BasicResponse handleDeviceInstallRequest(BasicRequest request) {
+        final String deviceId = request.getDeviceId();
+        final String dockerImage = request.getExtraData().get("dockerImage");
+        final String cmd = "docker pull " + dockerImage;
+        try {
+            Runtime.getRuntime().exec(cmd);
+            Mongo.addDevice(new Device(deviceId, dockerImage));
+        } catch (IOException ignore) {
+        }
+        return ResponseFactory.getEmptyResponse(request);
+    }
+
+    /**
+     * This function handles request to become a prashti server. This requires running of prashti server
+     * and zookeeper server. The jar containing the classes is assumed to be present in the directory
+     * specified in `chariot.sh` in the project root.
+     * @param request to start prashti and zookeeper servers
+     * @return empty response
+     */
+    private static BasicResponse handleBecomePrashtiRequest(BasicRequest request) {
+        try {
+            LOGGER.info("Starting Prashti and ZooKeeper Server");
+            Runtime.getRuntime().exec("./chariot.sh");
+        } catch (IOException ignore) {
+        }
+        return ResponseFactory.getEmptyResponse(request);
+    }
+
+    /**
+     * This function takes in request, executes the request and returns the response.
+     * The request is written into /tmp/<request_id>.req file. While running the docker container, /tmp dir is mounted
+     * to /tmp of the container. This enables ease of data exchange. TODO encryption
+     * Docker runs the request and puts the result into /tmp/<request_id>.res.
+     * If the request specifies a timeout, it is picked up, else default timeout is set for the process to run
+     * @param request containing function_name and other required information
+     * @return response of the request
+     */
+    private static BasicResponse handleTaskProcessingRequest(BasicRequest request) {
+        final String requestID = request.getRequestId();
+        try {
+            final byte[] serializedBytes = AvroUtils.requestToBytes(request);
+            final FileOutputStream fos = new FileOutputStream("/tmp/" + requestID + ".req");
+            fos.write(serializedBytes);
+            fos.close();
+            String timeoutString = request.getExtraData().get("chariot_timeout");
+            Long timeout;
+            if (timeoutString != null) {
+                timeout = Long.parseLong(timeoutString);
+            } else {
+                timeout = PROCESS_DEFAULT_TIMEOUT;
             }
+
+            final String dockerImage = Mongo.getDockerImage(request.getDeviceId());
+            final String cmd = "docker run -v /tmp:/tmp " + dockerImage + " /bin/chariot " + requestID;
+            final Process process = Runtime.getRuntime().exec(cmd);
+            TimeoutProcess timeoutProcess = new TimeoutProcess(process);
+            timeoutProcess.start();
+            try {
+                timeoutProcess.join(timeout); // milliseconds
+                if (timeoutProcess.exit != null) {
+                    File file = new File("/tmp/" + requestID + ".res");
+                    byte[] bytes = FileUtils.readFileToByteArray(file);
+                    return AvroUtils.bytesToResponse(bytes);
+                } else {
+                    return ResponseFactory.getTimeoutErrorResponse(request);
+                }
+            } catch (InterruptedException ignore) {
+                timeoutProcess.interrupt();
+                Thread.currentThread().interrupt();
+                return ResponseFactory.getErrorResponse(request);
+            } finally {
+                process.destroy();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseFactory.getErrorResponse(request);
         }
     }
 }
