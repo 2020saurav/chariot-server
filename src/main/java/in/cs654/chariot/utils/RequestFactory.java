@@ -74,4 +74,14 @@ public class RequestFactory {
                 .setExtraData(map)
                 .build();
     }
+
+    public static BasicRequest getBecomePrashti2Request() {
+        return BasicRequest.newBuilder()
+                .setDeviceId(CommonUtils.getIPAddress())
+                .setFunctionName(ReservedFunctions.BECOME_PRASHTI2.toString())
+                .setRequestId(CommonUtils.randomString(32))
+                .setArguments(new ArrayList<String>())
+                .setExtraData(new HashMap<String, String>())
+                .build();
+    }
 }

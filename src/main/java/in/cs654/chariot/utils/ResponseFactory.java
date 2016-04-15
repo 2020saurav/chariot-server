@@ -50,4 +50,18 @@ public class ResponseFactory {
                 .setStatus("ERROR")
                 .build();
     }
+
+    /**
+     * Method to build response for ERROR case
+     * @param request request object
+     * @return response with status ERROR
+     */
+    public static BasicResponse getTimeoutErrorResponse (BasicRequest request) {
+        return BasicResponse.newBuilder()
+                .setResponse(new HashMap<String, String>())
+                .setFunctionName(request.getFunctionName())
+                .setRequestId(request.getRequestId())
+                .setStatus("TIMEOUT")
+                .build();
+    }
 }
