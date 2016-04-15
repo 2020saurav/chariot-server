@@ -78,11 +78,6 @@ public class ZooKeeperServer {
                     encoder = EncoderFactory.get().binaryEncoder(baos, encoder);
                     avroWriter.write(response, encoder);
                     encoder.flush();
-                    if (request.getFunctionName().equals(ReservedFunctions.HEARTBEAT.toString())) {
-                        LOGGER.info("Received heartbeat from " + request.getExtraData().get("ipAddr"));
-                    } else {
-                        LOGGER.info("Responding to request id " + request.getRequestId() + " " + response.getStatus());
-                    }
                     channel.basicPublish("", props.getReplyTo(), replyProps, baos.toByteArray());
                     channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
                 }

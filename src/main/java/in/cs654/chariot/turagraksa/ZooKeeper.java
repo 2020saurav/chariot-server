@@ -23,6 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Zookeeper class has functions for maintaining quality attribute in the system.
+ * It has functions to sync database states with other zookeeper, to check availability of other zookeeper using
+ * ping-echo tactic, reset zookeeper client when other is down etc
+ */
 public class ZooKeeper {
     public static final Long HB_TIME_THRESHOLD = 30000L; // milliseconds
     public static final Long HB_TIME_ASHVA = 15000L;
@@ -30,6 +35,10 @@ public class ZooKeeper {
     private static ZooKeeperClient otherZooKeeperClient = null;
     final static Logger LOGGER = Logger.getLogger("ZooKeeper");
 
+    /**
+     * This function is used to sync heartbeat with other zookeeper
+     * @param heartbeat to be synced
+     */
     static void notifyOtherZooKeeperServer(Heartbeat heartbeat) {
         if (otherZooKeeperClient != null) {
             final BasicRequest request = RequestFactory.getHeartbeatSyncRequest(heartbeat);
@@ -37,6 +46,12 @@ public class ZooKeeper {
         }
     }
 
+    /**
+     * This function runs in a separate thread, in an infinite loop. It checks availability of other zookeeper.
+     * In case the zookeeper goes down (by extension the prashti too), it notifies the D2Client about this event
+     * by updating the prashti list on D2 server (setting single prashti i.e itself). Then it initiates the function
+     * to select a new prashti (and zookeeper) if available.
+     */
     static void startPingEcho() {
         final Thread thread = new Thread() {
             public void run() {
@@ -58,6 +73,7 @@ public class ZooKeeper {
                             }
                         }
                     } catch (InterruptedException ignore) {
+                        LOGGER.severe("Error oin Ping-Echo. Retrying..");
                         run();
                     }
                 }
@@ -66,7 +82,10 @@ public class ZooKeeper {
         thread.start();
     }
 
-    // D2Client will call this
+    /**
+     * This function is called when signalled by D2 client that there is some change in D2 server state.
+     * It sets the ZKClient corresponding to the updated zookeeper.
+     */
     static void resetOtherZooKeeperClient() {
         List<Prashti> prashtiList = D2Client.getOnlinePrashtiServers();
         if (prashtiList.size() == 2) {
@@ -75,9 +94,17 @@ public class ZooKeeper {
             } else {
                 otherZooKeeperClient = new ZooKeeperClient(prashtiList.get(1).getIpAddr());
             }
+            LOGGER.info("Resetting otherZooKeeperClient");
         }
+        LOGGER.warning("Number of prashtis : " + prashtiList.size());
     }
 
+    /**
+     * This function finds a possible candidate to become new prashti (and zookeeper).
+     * This is done by obtaining the latest list of online prashti (hopefully, exactly one will be there)
+     * Next, a list of online ashvas is queried and out of them, one is selected (one on top in query)
+     * and the ashva is signalled to become the new prashti (second one)
+     */
     private static void selectANewPrashti() {
         final List<Prashti> onlinePrashtiList = D2Client.getOnlinePrashtiServers();
         final List<Ashva> onlineAshvaList = Mongo.getAliveAshvaList();
@@ -92,6 +119,9 @@ public class ZooKeeper {
             final AshvaClient client = new AshvaClient(candidateIPAddresses.get(0));
             final BasicRequest req = RequestFactory.getBecomePrashti2Request();
             client.call(req);
+            LOGGER.info("Ashva (" + candidateIPAddresses.get(0) + ") requested to be another prashti");
+        } else {
+            LOGGER.warning("No possible candidate ashva can start prashti");
         }
     }
 }
