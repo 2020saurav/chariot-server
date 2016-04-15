@@ -16,33 +16,44 @@
 
 package in.cs654.chariot.prashti;
 
+import in.cs654.chariot.ashva.AshvaServer;
 import in.cs654.chariot.avro.BasicRequest;
 import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.utils.*;
 
 import java.util.List;
+import java.util.logging.Logger;
 
-// TODO javadoc
-public class PrashtiProcessor {
+/**
+ * This class has function process to handle requests sent to prashti server.
+ */
+class PrashtiProcessor {
+    private static final Logger LOGGER = Logger.getLogger("Prashti Processor");
 
+    /**
+     * This function matches the request against the following:
+     * DEVICE_SETUP : This request is sent by the devices. The request is handled by requesting all alive
+     * ashvas to install the device.
+     * PING : Simple Ping-Echo
+     * @param request received by the prashti server
+     * @return response of the request
+     */
     public static BasicResponse process(BasicRequest request) {
-
         if (request.getFunctionName().equals(ReservedFunctions.DEVICE_SETUP.toString())) {
-            String dockerImage = request.getExtraData().get("dockerImage");
-            Device device = new Device(request.getDeviceId(), dockerImage);
-            BasicRequest installRequest = RequestFactory.getInstallRequest(device);
-            List<Ashva> ashvaList = Mongo.getAliveAshvaList();
+            final String dockerImage = request.getExtraData().get("dockerImage");
+            final Device device = new Device(request.getDeviceId(), dockerImage);
+            LOGGER.info("Device setup request by device " + device.getId() + " (" + dockerImage + ")");
+            final BasicRequest installRequest = RequestFactory.getInstallRequest(device);
+            final List<Ashva> ashvaList = Mongo.getAliveAshvaList();
             for (Ashva ashva : ashvaList) {
-                AshvaClient client = new AshvaClient(ashva.getIpAddr());
+                final AshvaClient client = new AshvaClient(ashva.getIpAddr());
                 client.call(installRequest);
             }
             return ResponseFactory.getEmptyResponse(request);
-
         } else if (request.getFunctionName().equals(ReservedFunctions.PING.toString())) {
             return ResponseFactory.getEmptyResponse(request);
         } else {
-            // TODO
-            return new BasicResponse(); // fill in appropriate information in response
+            return ResponseFactory.getErrorResponse(request);
         }
     }
 }

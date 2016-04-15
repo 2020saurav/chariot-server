@@ -64,7 +64,7 @@ public class PrashtiServer {
             LOGGER.info("Prashti Server started. Waiting for requests...");
 
             final List<Prashti> prashtiList = D2Client.getOnlinePrashtiServers();
-            String ipAddr = CommonUtils.getIPAddress();
+            final String ipAddr = CommonUtils.getIPAddress();
             prashtiList.add(new Prashti(ipAddr));
             LOGGER.info("Notifying D2 to set Prashti Server IP Address");
             D2Client.setPrashtiServers(prashtiList);

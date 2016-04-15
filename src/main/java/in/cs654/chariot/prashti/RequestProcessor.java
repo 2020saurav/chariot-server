@@ -29,13 +29,13 @@ import java.util.List;
 
 /**
  * This class contains method to process requests to generate responses.
- * Based on the list of reservedFunctions (function names which will not be allowed at Ashva level), this method
- * will run the request on Prashti (for calls like setup new device, heartbeat etc) or forward to Ashva for execution
+ * Based on the list of reservedFunctions, this method will run the request on Prashti
+ * (for calls like setup new device, heartbeat etc) or forward to Ashva for execution
  */
 public class RequestProcessor {
 
     /**
-     * This method checks if the request is to be handled at Prashti ot be forwarded to Ashva
+     * This method checks if the request is to be handled at Prashti or be forwarded to Ashva
      * For forwarding the request, get the ashva from LoadBalancer and make RPC call to it
      * @param request request object
      * @return response of the request
@@ -46,10 +46,8 @@ public class RequestProcessor {
         } else try {
             final Ashva ashva = LoadBalancer.getAshva();
             final AshvaClient client = new AshvaClient(ashva.getIpAddr());
-            final BasicResponse response = client.call(request);
-            return response;
-        } catch (Exception e) {
-            e.printStackTrace();
+            return client.call(request);
+        } catch (Exception ignore) {
             return ResponseFactory.getErrorResponse(request);
         }
     }

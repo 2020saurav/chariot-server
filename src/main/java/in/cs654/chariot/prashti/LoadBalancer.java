@@ -23,9 +23,16 @@ import in.cs654.chariot.utils.Mongo;
 import java.util.List;
 import java.util.logging.Logger;
 
-// TODO javadoc
+/**
+ * This class has functions to balance the load amongst the ashva servers for task processing
+ */
 public class LoadBalancer {
     private static final Logger LOGGER = Logger.getLogger("Load Balancer");
+
+    /**
+     * This function finds the list of alive ashvas and randomly returns one of them.
+     * @return ashva which will be given the task to process
+     */
     public static Ashva getAshva() {
         final List<Ashva> ashvaList = Mongo.getAliveAshvaList();
         final int randIndex = CommonUtils.randInt(0, ashvaList.size()-1);
