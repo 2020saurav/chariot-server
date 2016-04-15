@@ -32,6 +32,13 @@ package in.cs654.chariot.utils;
  * BECOME_PRASHTI2 : Existing (single) prashti's Zookeeper sends this to an ashva to start its prashti server and
  *                   become the second prashti server.
  *
+ * JOIN_POOL       : Ashva sends this request to Zookeeper when it is ready to join the chariot pool. Along with this
+ *                   request, Ashva packs in the list of devices which it has installed (i.e. their docker images
+ *                   pulled in)
+ *
+ * HB_SYNC         : Zookeeper sends this message to another Zookeeper (if it is online). This is essentially
+ *                   forwarding of the heartbeat sent by an Ashva
+ *
  * PING            : D2Client sends PING to Prashti to check if it is up
  *
  */
@@ -41,6 +48,7 @@ public enum ReservedFunctions {
     HEARTBEAT ("chariotHeartbeat"),
     BECOME_PRASHTI2 ("chariotBecomePrashti2"),
     JOIN_POOL ("chariotJoinPool"),
+    HB_SYNC ("chariotHBSync"),
     PING ("chariotPing");
 
     private final String name;

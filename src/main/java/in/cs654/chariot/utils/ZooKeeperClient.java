@@ -42,33 +42,33 @@ public class ZooKeeperClient {
     private BinaryDecoder decoder = null;
     private ByteArrayOutputStream baos;
     final ConnectionFactory factory = new ConnectionFactory();
-    Prashti prashtiServer = null;
     final static Logger LOGGER = Logger.getLogger("ZooKeeper Client");
 
-    public ZooKeeperClient() {
-        setupZooKeeperClient();
+    public ZooKeeperClient(String ipAddr) {
+        setupZooKeeperClient(ipAddr);
     }
 
-    private void setupZooKeeperClient() {
-        List<Prashti> prashtiList = D2Client.getPrashtiServers();
+    public ZooKeeperClient() {
+        final List<Prashti> prashtiList = D2Client.getPrashtiServers();
         if (prashtiList.size() > 0) {
-            prashtiServer = prashtiList.get(0); // since ZooKeeper will run on Prashti, get prashti
-            factory.setHost(prashtiServer.getIpAddr());
-            try {
-                connection = factory.newConnection();
-                channel = connection.createChannel();
-                replyQueueName = channel.queueDeclare().getQueue();
-                consumer = new QueueingConsumer(channel);
-                channel.basicConsume(replyQueueName, true, consumer);
-                baos = new ByteArrayOutputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (TimeoutException e) {
-                e.printStackTrace();
-                setupZooKeeperClient(); // TODO profile this
-            }
-        } else {
-            LOGGER.severe("No Prashti available");
+            setupZooKeeperClient(prashtiList.get(0).getIpAddr());
+        }
+    }
+
+    private void setupZooKeeperClient(String ipAddr) {
+        try {
+            factory.setHost(ipAddr);
+            connection = factory.newConnection();
+            channel = connection.createChannel();
+            replyQueueName = channel.queueDeclare().getQueue();
+            consumer = new QueueingConsumer(channel);
+            channel.basicConsume(replyQueueName, true, consumer);
+            baos = new ByteArrayOutputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            setupZooKeeperClient(ipAddr); // TODO profile this
         }
     }
 

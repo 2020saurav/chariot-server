@@ -16,18 +16,20 @@
 
 package in.cs654.chariot.turagraksa;
 
-/**
- * TODO complete this
- * ZK will run only on Prashti.
- * ZK will run it's own process, having its own rabbitmq server
- * jobs of Zookeeper:
- * - receive heartbeat from all servers and update db : will be used by Load Balancer and ZK itself
- * - new prashti selection
- * - syncing data with new servers
- * - syncing data with other prashti (and ping echo)
- */
-public class ZooKeeper {
-    public static Long HB_TIME_THRESHOLD = 30000L; // milliseconds
-    public static Long HB_TIME_ASHVA = 15000L;
+import in.cs654.chariot.avro.BasicRequest;
+import in.cs654.chariot.utils.Heartbeat;
+import in.cs654.chariot.utils.RequestFactory;
+import in.cs654.chariot.utils.ZooKeeperClient;
 
+public class ZooKeeper {
+    public static final Long HB_TIME_THRESHOLD = 30000L; // milliseconds
+    public static final Long HB_TIME_ASHVA = 15000L;
+    private static ZooKeeperClient otherZooKeeperClient = null;
+
+    static void notifyOtherZooKeeperServer(Heartbeat heartbeat) {
+        if (otherZooKeeperClient != null) {
+            final BasicRequest request = RequestFactory.getHeartbeatSyncRequest(heartbeat);
+            otherZooKeeperClient.call(request);
+        }
+    }
 }

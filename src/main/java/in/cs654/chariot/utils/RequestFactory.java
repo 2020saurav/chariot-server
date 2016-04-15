@@ -61,6 +61,20 @@ public class RequestFactory {
                 .build();
     }
 
+    public static BasicRequest getHeartbeatSyncRequest(Heartbeat heartbeat) {
+        final Map<String, String> map = new HashMap<String, String>();
+        map.put("ipAddr", heartbeat.getIpAddr());
+        map.put("timeOfBeat", heartbeat.getTimeOfBeat());
+        map.put("logs", heartbeat.getLogs());
+        return BasicRequest.newBuilder()
+                .setDeviceId(heartbeat.getIpAddr())
+                .setFunctionName(ReservedFunctions.HB_SYNC.toString())
+                .setRequestId(CommonUtils.randomString(32))
+                .setArguments(new ArrayList<String>())
+                .setExtraData(map)
+                .build();
+    }
+
     public static BasicRequest getPoolJoinRequest() {
         final List<Device> devices = Mongo.getAllDevices();
         final String serializedString = Device.serializeDeviceList(devices);

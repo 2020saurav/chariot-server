@@ -48,6 +48,7 @@ public class ZooKeeperProcessor {
             final String logs = request.getExtraData().get("logs");
             final Heartbeat heartbeat = new Heartbeat(ipAddr, timeOfBeat, logs);
             Mongo.updateHeartbeat(heartbeat);
+            ZooKeeper.notifyOtherZooKeeperServer(heartbeat);
             return ResponseFactory.getEmptyResponse(request);
 
         } else if (request.getFunctionName().equals(ReservedFunctions.JOIN_POOL.toString())) {
