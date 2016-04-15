@@ -32,39 +32,42 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.*;
 
+/**
+ * D2Client acts as the intermediary between chariot server and D2 service
+ */
 public class D2Client {
+    private static final String d2ServiceURL = "http://172.27.25.236:4567/prashtis";
+    private static final long D2_PING_TIMEOUT = 2000L; // milliseconds
 
-    public static final String d2ServiceURL = "http://172.27.25.236:4567/prashtis";
-    public static final long D2_PING_TIMEOUT = 2000L; // milliseconds
+    /**
+     * This function gets the list of prashti servers from D2 server
+     * and then checks if the prashti is really online and returns the filtered list
+     * @return list of online prashti servers
+     */
     public static List<Prashti> getOnlinePrashtiServers() {
-        List<Prashti> prashtiList = new ArrayList<Prashti>();
-        try {
-            URL url = new URL(d2ServiceURL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            JsonParser parser = new JsonParser();
-            JsonElement element = parser.parse(in.readLine());
-            JsonArray jsonArray = element.getAsJsonArray();
-            for (JsonElement e : jsonArray) {
-                final String ipAddr = e.getAsJsonObject().get("ipAddr").getAsString();
-                if (!ipAddr.equals("") && isActive(ipAddr)) {
-                    prashtiList.add(new Prashti(ipAddr));
-                }
+        final List<Prashti> prashtiList = getPrashtiServers();
+        for (Prashti prashti : prashtiList) {
+            if (!isActive(prashti.getIpAddr())) {
+                prashtiList.remove(prashti);
             }
-        } catch (Exception ignore) {
         }
         return prashtiList;
     }
 
-    public static List<Prashti> getPrashtiServers() {
-        List<Prashti> prashtiList = new ArrayList<Prashti>();
+    /**
+     * This function gets the list of prashti servers from D2 server
+     * and returns the list, as is.
+     * @return list of prashti servers as present on D2 server
+     */
+    static List<Prashti> getPrashtiServers() {
+        final List<Prashti> prashtiList = new ArrayList<Prashti>();
         try {
-            URL url = new URL(d2ServiceURL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            JsonParser parser = new JsonParser();
-            JsonElement element = parser.parse(in.readLine());
-            JsonArray jsonArray = element.getAsJsonArray();
+            final URL url = new URL(d2ServiceURL);
+            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            final BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            final JsonParser parser = new JsonParser();
+            final JsonElement element = parser.parse(in.readLine());
+            final JsonArray jsonArray = element.getAsJsonArray();
             for (JsonElement e : jsonArray) {
                 final String ipAddr = e.getAsJsonObject().get("ipAddr").getAsString();
                 if (!ipAddr.equals("")) {
@@ -76,13 +79,18 @@ public class D2Client {
         return prashtiList;
     }
 
+    /**
+     * This function tests if a prashti server (given it's IP address) is online
+     * @param ipAddr of the prashti server
+     * @return true if online, false otherwise
+     */
     private static boolean isActive(final String ipAddr) {
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        Callable<BasicResponse> task = new Callable<BasicResponse>() {
+        final ExecutorService executorService = Executors.newCachedThreadPool();
+        final Callable<BasicResponse> task = new Callable<BasicResponse>() {
             @Override
             public BasicResponse call() throws Exception {
-                PrashtiClient client = new PrashtiClient(ipAddr);
-                BasicRequest request = BasicRequest.newBuilder()
+                final PrashtiClient client = new PrashtiClient(ipAddr);
+                final BasicRequest request = BasicRequest.newBuilder()
                         .setRequestId(CommonUtils.randomString(32))
                         .setArguments(new ArrayList<String>())
                         .setDeviceId("D2")
@@ -92,19 +100,25 @@ public class D2Client {
                 return client.call(request);
             }
         };
-        Future<BasicResponse> future = executorService.submit(task);
+        final Future<BasicResponse> future = executorService.submit(task);
         try {
-            BasicResponse ignore = future.get(D2_PING_TIMEOUT, TimeUnit.MILLISECONDS);
+            final BasicResponse ignore = future.get(D2_PING_TIMEOUT, TimeUnit.MILLISECONDS);
             return true;
         } catch (Exception ignore) {
             return false;
         }
     }
 
+    /**
+     * This function is used to set the new list of prashti servers
+     * The architecture permits a maximum to 2 prashti servers (recommended is 2 too)
+     * After updating the list, the current zookeepers are notified to make necessary changes.
+     * @param prashtiList to be set as new list of prashti server IP addresses
+     */
     public static void setPrashtiServers(List<Prashti> prashtiList) {
         try {
-            URL url = new URL(d2ServiceURL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            final URL url = new URL(d2ServiceURL);
+            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             String params = "";
             if (prashtiList.size() == 1) {
@@ -125,6 +139,9 @@ public class D2Client {
         }
     }
 
+    /**
+     * This function is used to notify the zookeepers (max 2) about any change in D2 state.
+     */
     private static void notifyZooKeeperAboutChange() {
         final BasicRequest request = BasicRequest.newBuilder()
                 .setDeviceId("D2Client")

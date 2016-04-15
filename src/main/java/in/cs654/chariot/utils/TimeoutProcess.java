@@ -16,6 +16,11 @@
 
 package in.cs654.chariot.utils;
 
+/**
+ * This class is used to build object which will run a 'Process' which needs to
+ * finish within a given timeout. This is used by Ashva Processor to encapsulate
+ * the `docker run` process.
+ */
 public class TimeoutProcess extends Thread {
     private final Process process;
     public Integer exit;

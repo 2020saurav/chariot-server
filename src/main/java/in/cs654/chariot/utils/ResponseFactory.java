@@ -21,6 +21,9 @@ import in.cs654.chariot.avro.BasicResponse;
 
 import java.util.HashMap;
 
+/**
+ * This class contains functions which help in building common responses.
+ */
 public class ResponseFactory {
 
     /**
@@ -52,9 +55,9 @@ public class ResponseFactory {
     }
 
     /**
-     * Method to build response for ERROR case
+     * Method to build response for TIMEOUT case
      * @param request request object
-     * @return response with status ERROR
+     * @return response with status TIMEOUT
      */
     public static BasicResponse getTimeoutErrorResponse (BasicRequest request) {
         return BasicResponse.newBuilder()

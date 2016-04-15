@@ -49,8 +49,7 @@ public class PrashtiClient {
     private BinaryDecoder decoder = null;
     private ByteArrayOutputStream baos;
     final ConnectionFactory factory = new ConnectionFactory();
-    Prashti prashtiServer = null;
-    final static Logger LOGGER = Logger.getLogger("Prashti Client");
+    private final static Logger LOGGER = Logger.getLogger("Prashti Client");
 
     public PrashtiClient() {
         setupPrashtiClient();
@@ -73,9 +72,9 @@ public class PrashtiClient {
     }
 
     private void setupPrashtiClient() {
-        List<Prashti> prashtiList = D2Client.getPrashtiServers();
+        final List<Prashti> prashtiList = D2Client.getPrashtiServers();
         if (prashtiList.size() > 0) {
-            prashtiServer = prashtiList.get(0);
+            final Prashti prashtiServer = prashtiList.get(0);
             factory.setHost(prashtiServer.getIpAddr());
             try {
                 connection = factory.newConnection();
@@ -96,8 +95,6 @@ public class PrashtiClient {
     }
 
     public BasicResponse call(BasicRequest request) throws IOException, InterruptedException {
-        // TODO profile this to see if rabbitmq calls fixes it or a timeout is needed
-        // TODO in case timeout is needed, run setupPrashtiClient() after timeout
         BasicResponse response = new BasicResponse();
         final String corrId = UUID.randomUUID().toString();
         final BasicProperties props = new BasicProperties.Builder()

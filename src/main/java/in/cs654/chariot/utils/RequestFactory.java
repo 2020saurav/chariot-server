@@ -18,11 +18,18 @@ package in.cs654.chariot.utils;
 
 import in.cs654.chariot.avro.BasicRequest;
 
-import java.io.*;
 import java.util.*;
 
+/**
+ * This class contains functions to build requests required by several other components.
+ */
 public class RequestFactory {
 
+    /**
+     * This function is to be used by devices to build setup request
+     * @param device containing id and docker image
+     * @return request body
+     */
     public static BasicRequest getSetupRequest(Device device) {
         final Map<String, String> map = new HashMap<String, String>();
         map.put("dockerImage", device.getDockerImage());
@@ -35,6 +42,12 @@ public class RequestFactory {
                 .build();
     }
 
+    /**
+     * This function is to be used by Prashti and Zookeeper to tell ashvas to install
+     * the said device.
+     * @param device to be installed
+     * @return request object corresponding to this
+     */
     public static BasicRequest getInstallRequest(Device device) {
         final Map<String, String> map = new HashMap<String, String>();
         map.put("dockerImage", device.getDockerImage());
@@ -47,6 +60,11 @@ public class RequestFactory {
                 .build();
     }
 
+    /**
+     * This function is used to build request for heartbeat
+     * @param heartbeat to be put in the request object
+     * @return request object
+     */
     public static BasicRequest getHeartbeatRequest(Heartbeat heartbeat) {
         final Map<String, String> map = new HashMap<String, String>();
         map.put("ipAddr", heartbeat.getIpAddr());
@@ -61,6 +79,11 @@ public class RequestFactory {
                 .build();
     }
 
+    /**
+     * This function is used to build request for syncing heartbeat among Zookeepers
+     * @param heartbeat whose request is to be built
+     * @return request object
+     */
     public static BasicRequest getHeartbeatSyncRequest(Heartbeat heartbeat) {
         final Map<String, String> map = new HashMap<String, String>();
         map.put("ipAddr", heartbeat.getIpAddr());
@@ -75,6 +98,11 @@ public class RequestFactory {
                 .build();
     }
 
+    /**
+     * This function is to build request for ashva to be sent to Zookeeper for ashva to be
+     * added to the chariot pool. It packs in the list of devices present on the machine.
+     * @return request object
+     */
     public static BasicRequest getPoolJoinRequest() {
         final List<Device> devices = Mongo.getAllDevices();
         final String serializedString = Device.serializeDeviceList(devices);
@@ -89,6 +117,10 @@ public class RequestFactory {
                 .build();
     }
 
+    /**
+     * This function is to build request to ask an ashva to start its prashti and zookeeper servers
+     * @return request object
+     */
     public static BasicRequest getBecomePrashti2Request() {
         return BasicRequest.newBuilder()
                 .setDeviceId(CommonUtils.getIPAddress())
@@ -99,6 +131,10 @@ public class RequestFactory {
                 .build();
     }
 
+    /**
+     * This is used to build ping request
+     * @return request object
+     */
     public static BasicRequest getPingRequest() {
         return BasicRequest.newBuilder()
                 .setDeviceId(CommonUtils.getIPAddress())

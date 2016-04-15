@@ -26,7 +26,7 @@ public class Heartbeat {
     private String timeOfBeat; // will use it to compare against time when it actually reaches
     private String logs;
 
-    public String getTimeOfBeat() {
+    String getTimeOfBeat() {
         return timeOfBeat;
     }
 
@@ -34,7 +34,7 @@ public class Heartbeat {
         return ipAddr;
     }
 
-    public String getLogs() {
+    String getLogs() {
         return logs;
     }
 
@@ -44,9 +44,14 @@ public class Heartbeat {
         this.logs = logs;
     }
 
+    /**
+     * Helper function to build heartbeat object with given log
+     * @param logs to be put in heartbeat object
+     * @return heartbeat object
+     */
     public static Heartbeat buildHeartBeat(String logs) {
-        String timeOfBeat = ((Long) System.currentTimeMillis()).toString();
-        String ipAddr = CommonUtils.getIPAddress();
+        final String timeOfBeat = ((Long) System.currentTimeMillis()).toString();
+        final String ipAddr = CommonUtils.getIPAddress();
         return new Heartbeat(ipAddr, timeOfBeat, logs);
     }
 }

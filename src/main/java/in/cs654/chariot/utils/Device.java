@@ -16,11 +16,14 @@
 
 package in.cs654.chariot.utils;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
+/**
+ * This class represents a device having an id and its corresponding docker image.
+ */
 public class Device implements Serializable {
 
     private String id;
@@ -39,33 +42,39 @@ public class Device implements Serializable {
         this.id = id;
     }
 
-    public String getDockerImage() {
+    String getDockerImage() {
         return dockerImage;
     }
 
-    public void setDockerImage(String dockerImage) {
-        this.dockerImage = dockerImage;
-    }
-
-    public static String serializeDeviceList(List<Device> devices) {
+    /**
+     * This function serializes a list of devices into a byte string.
+     * @param devices list of device
+     * @return byte string representation of the list
+     */
+    static String serializeDeviceList(List<Device> devices) {
         String serialized = "";
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final ObjectOutputStream oos = new ObjectOutputStream(baos);
             oos.writeObject(devices);
             oos.flush();
             oos.close();
-            serialized = Base64.getEncoder().encodeToString(baos.toByteArray());
+            serialized = DatatypeConverter.printBase64Binary(baos.toByteArray());
         } catch (IOException ignore) {
         }
         return serialized;
     }
 
+    /**
+     * This function de-serializes the byte string into list of device
+     * @param serializedString byte string representing the list of device
+     * @return list of device
+     */
     public static List<Device> deserializeDeviceListString(String serializedString) {
         List<Device> devices = new ArrayList<Device>();
         try {
-            byte[] data = Base64.getDecoder().decode(serializedString);
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
+            final byte[] data = DatatypeConverter.parseBase64Binary(serializedString);
+            final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
             devices = (ArrayList) ois.readObject();
         } catch (Exception ignore) {
         }

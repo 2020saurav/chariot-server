@@ -56,7 +56,7 @@ public enum ReservedFunctions {
 
     private final String name;
 
-    private ReservedFunctions(String s) {
+    ReservedFunctions(String s) {
         name = s;
     }
 

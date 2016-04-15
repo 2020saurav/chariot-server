@@ -16,6 +16,9 @@
 
 package in.cs654.chariot.utils;
 
+/**
+ * This class represents Prashti entity.
+ */
 public class Prashti {
     private String ipAddr;
 

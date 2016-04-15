@@ -29,8 +29,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Logger;
 
+/**
+ * Client class to make calls to Zookeeper Server
+ */
 public class ZooKeeperClient {
 
     private Connection connection;
@@ -41,8 +43,7 @@ public class ZooKeeperClient {
     private BinaryEncoder encoder = null;
     private BinaryDecoder decoder = null;
     private ByteArrayOutputStream baos;
-    final ConnectionFactory factory = new ConnectionFactory();
-    final static Logger LOGGER = Logger.getLogger("ZooKeeper Client");
+    private final ConnectionFactory factory = new ConnectionFactory();
 
     public ZooKeeperClient(String ipAddr) {
         setupZooKeeperClient(ipAddr);
@@ -73,8 +74,6 @@ public class ZooKeeperClient {
     }
 
     public BasicResponse call(BasicRequest request) {
-        // TODO profile this to see if rabbitmq calls fixes it or a timeout is needed
-        // TODO in case timeout is needed, run setupPrashtiClient() after timeout
         BasicResponse response = new BasicResponse();
         final String corrId = UUID.randomUUID().toString();
         final AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
