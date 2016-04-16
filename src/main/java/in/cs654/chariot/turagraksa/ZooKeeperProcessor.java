@@ -54,6 +54,9 @@ class ZooKeeperProcessor {
         if (request.getFunctionName().equals(ReservedFunctions.HEARTBEAT.toString())) {
             return handleHeartBeatRequest(request);
 
+        } else if(request.getFunctionName().equals(ReservedFunctions.HB_SYNC.toString())) {
+            return handleHeartBeatSyncRequest(request);
+
         } else if (request.getFunctionName().equals(ReservedFunctions.JOIN_POOL.toString())) {
             return handlePoolJoinRequest(request);
 
@@ -109,6 +112,22 @@ class ZooKeeperProcessor {
         Mongo.updateHeartbeat(heartbeat);
         ZooKeeper.notifyOtherZooKeeperServer(heartbeat);
         LOGGER.info("Heartbeat received from Ashva (" + ipAddr + ")");
+        return ResponseFactory.getEmptyResponse(request);
+    }
+
+    /**
+     * This function is to handle the heartbeat sync sent by other zookeeper.
+     * The heartbeat is sent to MongoDB to update the database state.
+     * @param request containing heartbeat
+     * @return empty response
+     */
+    private static BasicResponse handleHeartBeatSyncRequest(BasicRequest request) {
+        final String ipAddr = request.getExtraData().get("ipAddr");
+        final String timeOfBeat = request.getExtraData().get("timeOfBeat");
+        final String logs = request.getExtraData().get("logs");
+        final Heartbeat heartbeat = new Heartbeat(ipAddr, timeOfBeat, logs);
+        Mongo.updateHeartbeat(heartbeat);
+        LOGGER.info("Heartbeat (sync) received from Ashva (" + ipAddr + ")");
         return ResponseFactory.getEmptyResponse(request);
     }
 
