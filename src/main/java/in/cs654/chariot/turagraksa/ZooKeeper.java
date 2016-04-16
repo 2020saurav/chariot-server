@@ -17,10 +17,12 @@
 package in.cs654.chariot.turagraksa;
 
 import in.cs654.chariot.avro.BasicRequest;
+import in.cs654.chariot.avro.BasicResponse;
 import in.cs654.chariot.utils.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 /**
@@ -31,9 +33,10 @@ import java.util.logging.Logger;
 public class ZooKeeper {
     public static final Long HB_TIME_THRESHOLD = 30000L; // milliseconds
     public static final Long HB_TIME_ASHVA = 15000L;
-    public static final Long PING_ECHO_DURATION = 10000L;
+    private static final Long PING_ECHO_DURATION = 10000L;
+    private static final Long ZK_PING_TIMEOUT = 40000L;
     private static ZooKeeperClient otherZooKeeperClient = null;
-    final static Logger LOGGER = Logger.getLogger("ZooKeeper");
+    private final static Logger LOGGER = Logger.getLogger("ZooKeeper");
 
     /**
      * This function is used to sync heartbeat with other zookeeper
@@ -59,10 +62,9 @@ public class ZooKeeper {
                     try {
                         Thread.sleep(PING_ECHO_DURATION);
                         if (otherZooKeeperClient != null) {
-                            try {
-                                otherZooKeeperClient.call(RequestFactory.getPingRequest());
+                            if (checkOtherZooKeeper()) {
                                 LOGGER.info("Other Zookeeper is alive");
-                            } catch (Exception ignore) {
+                            } else {
                                 otherZooKeeperClient = null;
                                 LOGGER.warning("Other Zookeeper is down");
                                 // inform D2 that I am the alone Prashti/Zookeeper server
@@ -82,6 +84,23 @@ public class ZooKeeper {
         thread.start();
     }
 
+    private static boolean checkOtherZooKeeper() {
+        final ExecutorService executorService = Executors.newCachedThreadPool();
+        final Callable<BasicResponse> task = new Callable<BasicResponse>() {
+            @Override
+            public BasicResponse call() throws Exception {
+                return otherZooKeeperClient.call(RequestFactory.getPingRequest());
+            }
+        };
+        final Future<BasicResponse> future = executorService.submit(task);
+        try {
+            final BasicResponse ignore = future.get(ZK_PING_TIMEOUT, TimeUnit.MILLISECONDS);
+            return true;
+        } catch (Exception ignore) {
+            return false;
+        }
+    }
+
     /**
      * This function is called when signalled by D2 client that there is some change in D2 server state.
      * It sets the ZKClient corresponding to the updated zookeeper.
@@ -95,8 +114,9 @@ public class ZooKeeper {
                 otherZooKeeperClient = new ZooKeeperClient(prashtiList.get(1).getIpAddr());
             }
             LOGGER.info("Resetting otherZooKeeperClient");
+        } else {
+            LOGGER.warning("Number of prashtis : " + prashtiList.size());
         }
-        LOGGER.warning("Number of prashtis : " + prashtiList.size());
     }
 
     /**
