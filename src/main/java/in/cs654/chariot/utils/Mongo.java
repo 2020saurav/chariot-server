@@ -77,7 +77,7 @@ public class Mongo {
         final List<Device> devices = new ArrayList<Device>();
         final FindIterable<Document> docs = devicesCollection.find();
         for (Document doc : docs) {
-            devices.add(new Device(doc.get("_id").toString(), doc.get("dockerImage").toString()));
+            devices.add(new Device(doc.get("_id").toString(), doc.get("docker_image").toString()));
         }
         return devices;
     }

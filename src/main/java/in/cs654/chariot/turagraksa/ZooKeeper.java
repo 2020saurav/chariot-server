@@ -73,7 +73,7 @@ public class ZooKeeper {
                             }
                         }
                     } catch (InterruptedException ignore) {
-                        LOGGER.severe("Error oin Ping-Echo. Retrying..");
+                        LOGGER.severe("Error in Ping-Echo. Retrying..");
                         run();
                     }
                 }

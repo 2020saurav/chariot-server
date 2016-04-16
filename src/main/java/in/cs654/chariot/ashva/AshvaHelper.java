@@ -40,21 +40,28 @@ class AshvaHelper {
      * on the machine. Informing D2 is taken care of by the prashti server itself.
      */
     static void joinOrStartChariotPool() {
-        final List<Prashti> prashtiList = D2Client.getOnlinePrashtiServers();
-        if (prashtiList.size() != 0) {
-            final ZooKeeperClient zooKeeperClient = new ZooKeeperClient();
-            final BasicRequest request = RequestFactory.getPoolJoinRequest();
-            zooKeeperClient.call(request);
-            LOGGER.info("Prashti [" + prashtiList.get(0).getIpAddr() + "] exists. Joining pool.");
-        } else {
-            LOGGER.info("No Prashti Server found.");
-            try {
-                LOGGER.info("Starting Prashti and ZooKeeper Server");
-                Runtime.getRuntime().exec("./chariot.sh");
-            } catch (IOException ignore) {
-                LOGGER.severe("Prashti & ZooKeeper Server initialization failed");
+        final Thread thread = new Thread() {
+            public void run() {
+                final List<Prashti> prashtiList = D2Client.getOnlinePrashtiServers();
+                LOGGER.info("size of online prashtis: " + prashtiList.size());
+                if (prashtiList.size() != 0) {
+                    final ZooKeeperClient zooKeeperClient = new ZooKeeperClient();
+                    final BasicRequest request = RequestFactory.getPoolJoinRequest();
+                    LOGGER.info("calling zk");
+                    zooKeeperClient.call(request);
+                    LOGGER.info("Prashti [" + prashtiList.get(0).getIpAddr() + "] exists. Joining pool.");
+                } else {
+                    LOGGER.info("No Prashti Server found.");
+                    try {
+                        LOGGER.info("Starting Prashti and ZooKeeper Server");
+                        Runtime.getRuntime().exec("./chariot.sh");
+                    } catch (IOException ignore) {
+                        LOGGER.severe("Prashti & ZooKeeper Server initialization failed");
+                    }
+                }
             }
-        }
+        };
+        thread.start();
     }
 
     /**
