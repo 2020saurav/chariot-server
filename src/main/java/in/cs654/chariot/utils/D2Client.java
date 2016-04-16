@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 /**
  * D2Client acts as the intermediary between chariot server and D2 service
@@ -38,6 +39,7 @@ import java.util.concurrent.*;
 public class D2Client {
     private static final String d2ServiceURL = "http://172.27.25.236:4567/prashtis";
     private static final long D2_PING_TIMEOUT = 2000L; // milliseconds
+    private static final Logger LOGGER = Logger.getLogger("D2 Client");
 
     /**
      * This function gets the list of prashti servers from D2 server
@@ -135,6 +137,7 @@ public class D2Client {
             stream.flush();
             stream.close();
             connection.getResponseCode();
+            LOGGER.info("Setting new IP Addresses in D2");
             notifyZooKeeperAboutChange();
         } catch (Exception ignore) {
         }
@@ -152,11 +155,11 @@ public class D2Client {
                 .setExtraData(new HashMap<String, String>())
                 .build();
         final List<Prashti> prashtiList = getOnlinePrashtiServers();
-        if (prashtiList.size() == 2) {
-            for (Prashti prashti : prashtiList) {
-                final ZooKeeperClient client = new ZooKeeperClient(prashti.getIpAddr());
-                client.call(request);
-            }
+        LOGGER.info("Notifying Zookeepers about change");
+        for (Prashti prashti : prashtiList) {
+            final ZooKeeperClient client = new ZooKeeperClient(prashti.getIpAddr());
+            client.call(request);
+            LOGGER.info("Notified " + prashti.getIpAddr());
         }
     }
 }
