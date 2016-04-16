@@ -130,8 +130,16 @@ public class D2Client {
                         params = "ip1=" + prashtiList.get(0).getIpAddr();
                         params += "&ip2=";
                     } else if (prashtiList.size() >= 2) {
-                        params = "ip1=" + prashtiList.get(0).getIpAddr();
-                        params += "&ip2=" + prashtiList.get(1).getIpAddr();
+                        final String ipAddr1 = prashtiList.get(0).getIpAddr();
+                        final String ipAddr2 = prashtiList.get(1).getIpAddr();
+                        if (ipAddr1.equals(ipAddr2)) {
+                            params = "ip1=" + ipAddr1;
+                            params += "&ip2=";
+                        } else {
+                            params = "ip1=" + ipAddr1;
+                            params += "&ip2=" + ipAddr2;
+                        }
+
                     }
                     connection.setDoOutput(true);
                     DataOutputStream stream = new DataOutputStream(connection.getOutputStream());

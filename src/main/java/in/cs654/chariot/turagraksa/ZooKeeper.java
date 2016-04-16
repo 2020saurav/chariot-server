@@ -73,6 +73,12 @@ public class ZooKeeper {
                                 D2Client.setPrashtiServers(prashtiList);
                                 selectANewPrashti();
                             }
+                        } else {
+                            LOGGER.warning("Other Zookeeper is down");
+                            final List<Prashti> prashtiList = new ArrayList<Prashti>();
+                            prashtiList.add(new Prashti(CommonUtils.getIPAddress()));
+                            D2Client.setPrashtiServers(prashtiList);
+                            selectANewPrashti();
                         }
                     } catch (InterruptedException ignore) {
                         LOGGER.severe("Error in Ping-Echo. Retrying..");
