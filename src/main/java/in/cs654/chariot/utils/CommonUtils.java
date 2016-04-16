@@ -51,16 +51,20 @@ public class CommonUtils {
         try {
             final NetworkInterface niEth0 = NetworkInterface.getByName("eth0");
             final NetworkInterface niWlan0 = NetworkInterface.getByName("wlan0");
-            for (Enumeration en = niEth0.getInetAddresses(); en.hasMoreElements();) {
-                final InetAddress addr = (InetAddress) en.nextElement();
-                if (addr instanceof Inet4Address) {
-                    return addr.getHostAddress();
+            if (niEth0 != null) {
+                for (Enumeration en = niEth0.getInetAddresses(); en.hasMoreElements();) {
+                    final InetAddress addr = (InetAddress) en.nextElement();
+                    if (addr instanceof Inet4Address) {
+                        return addr.getHostAddress();
+                    }
                 }
             }
-            for (Enumeration en = niWlan0.getInetAddresses(); en.hasMoreElements();) {
-                final InetAddress addr = (InetAddress) en.nextElement();
-                if (addr instanceof Inet4Address) {
-                    return addr.getHostAddress();
+            if (niWlan0 != null) {
+                for (Enumeration en = niWlan0.getInetAddresses(); en.hasMoreElements();) {
+                    final InetAddress addr = (InetAddress) en.nextElement();
+                    if (addr instanceof Inet4Address) {
+                        return addr.getHostAddress();
+                    }
                 }
             }
         } catch (SocketException ignore) {
