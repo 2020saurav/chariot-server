@@ -118,29 +118,34 @@ public class D2Client {
      * After updating the list, the current zookeepers are notified to make necessary changes.
      * @param prashtiList to be set as new list of prashti server IP addresses
      */
-    public static void setPrashtiServers(List<Prashti> prashtiList) {
-        try {
-            final URL url = new URL(d2ServiceURL);
-            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            String params = "";
-            if (prashtiList.size() == 1) {
-                params = "ip1=" + prashtiList.get(0).getIpAddr();
-                params += "&ip2=";
-            } else if (prashtiList.size() >= 2) {
-                params = "ip1=" + prashtiList.get(0).getIpAddr();
-                params += "&ip2=" + prashtiList.get(1).getIpAddr();
+    public static void setPrashtiServers(final List<Prashti> prashtiList) {
+        final Thread thread = new Thread() {
+            public void run() {
+                try {
+                    final URL url = new URL(d2ServiceURL);
+                    final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("POST");
+                    String params = "";
+                    if (prashtiList.size() == 1) {
+                        params = "ip1=" + prashtiList.get(0).getIpAddr();
+                        params += "&ip2=";
+                    } else if (prashtiList.size() >= 2) {
+                        params = "ip1=" + prashtiList.get(0).getIpAddr();
+                        params += "&ip2=" + prashtiList.get(1).getIpAddr();
+                    }
+                    connection.setDoOutput(true);
+                    DataOutputStream stream = new DataOutputStream(connection.getOutputStream());
+                    stream.writeBytes(params);
+                    stream.flush();
+                    stream.close();
+                    connection.getResponseCode();
+                    LOGGER.info("Setting new IP Addresses in D2 : " + params);
+                    notifyZooKeeperAboutChange();
+                } catch (Exception ignore) {
+                }
             }
-            connection.setDoOutput(true);
-            DataOutputStream stream = new DataOutputStream(connection.getOutputStream());
-            stream.writeBytes(params);
-            stream.flush();
-            stream.close();
-            connection.getResponseCode();
-            LOGGER.info("Setting new IP Addresses in D2");
-            notifyZooKeeperAboutChange();
-        } catch (Exception ignore) {
-        }
+        };
+        thread.start();
     }
 
     /**
