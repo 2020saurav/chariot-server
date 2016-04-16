@@ -33,9 +33,7 @@ public class PrashtiServerIntegTest {
         BasicResponse response;
         try {
             testRpc = new PrashtiClient();
-            String deviceId = CommonUtils.randomString(10);
-            String dockerImage = "2020saurav/chariot:1.0";
-            Mongo.addDevice(new Device(deviceId, dockerImage));
+            String deviceId = "test1";
             BasicRequest lifeUniv = BasicRequest.newBuilder()
                     .setRequestId(CommonUtils.randomString(32))
                     .setDeviceId(deviceId)
@@ -47,7 +45,6 @@ public class PrashtiServerIntegTest {
             System.out.println("Requesting " + lifeUniv.getFunctionName());
             response = testRpc.call(lifeUniv);
             System.out.println(" [.] Got '" + response.getResponse().get("answer") + "'");
-            Mongo.deleteDeviceById(deviceId);
         }
         catch  (Exception e) {
             e.printStackTrace();

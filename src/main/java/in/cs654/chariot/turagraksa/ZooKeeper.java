@@ -66,7 +66,7 @@ public class ZooKeeper {
                                 LOGGER.info("Other Zookeeper is alive");
                             } else {
                                 otherZooKeeperClient = null;
-                                LOGGER.warning("Other Zookeeper is down");
+                                LOGGER.warning("Other Zookeeper has gone down");
                                 // inform D2 that I am the alone Prashti/Zookeeper server
                                 final List<Prashti> prashtiList = new ArrayList<Prashti>();
                                 prashtiList.add(new Prashti(CommonUtils.getIPAddress()));
@@ -75,10 +75,6 @@ public class ZooKeeper {
                             }
                         } else {
                             LOGGER.warning("Other Zookeeper is down");
-                            final List<Prashti> prashtiList = new ArrayList<Prashti>();
-                            prashtiList.add(new Prashti(CommonUtils.getIPAddress()));
-                            D2Client.setPrashtiServers(prashtiList);
-                            selectANewPrashti();
                         }
                     } catch (InterruptedException ignore) {
                         LOGGER.severe("Error in Ping-Echo. Retrying..");
@@ -101,8 +97,10 @@ public class ZooKeeper {
         final Future<BasicResponse> future = executorService.submit(task);
         try {
             final BasicResponse ignore = future.get(ZK_PING_TIMEOUT, TimeUnit.MILLISECONDS);
+            executorService.shutdown();
             return true;
         } catch (Exception ignore) {
+            executorService.shutdown();
             return false;
         }
     }

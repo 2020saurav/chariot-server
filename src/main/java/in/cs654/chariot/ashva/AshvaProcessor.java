@@ -24,6 +24,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -81,8 +82,20 @@ public class AshvaProcessor {
      */
     private static BasicResponse handleBecomePrashtiRequest(BasicRequest request) {
         try {
-            LOGGER.info("Starting Prashti and ZooKeeper Server");
-            Runtime.getRuntime().exec("./chariot.sh");
+            boolean alreadyRunning = false;
+            final String myIPAddr = CommonUtils.getIPAddress();
+            final List<Prashti> onlinePrashtiList = D2Client.getOnlinePrashtiServers();
+            for (Prashti prashti : onlinePrashtiList) {
+                if (prashti.getIpAddr().equals(myIPAddr)) {
+                    alreadyRunning = true;
+                }
+            }
+            if (!alreadyRunning) {
+                LOGGER.info("Starting Prashti and ZooKeeper Server");
+                Runtime.getRuntime().exec("./chariot.sh");
+            } else {
+                LOGGER.info("Prashti and Zookeeper already running on this machine");
+            }
         } catch (IOException ignore) {
             LOGGER.severe("Error in starting Prashti and Zookeeper servers");
         }
