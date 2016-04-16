@@ -46,12 +46,13 @@ public class D2Client {
      */
     public static List<Prashti> getOnlinePrashtiServers() {
         final List<Prashti> prashtiList = getPrashtiServers();
+        final List<Prashti> onlinePrashtis = new ArrayList<Prashti>();
         for (Prashti prashti : prashtiList) {
-            if (!isActive(prashti.getIpAddr())) {
-                prashtiList.remove(prashti);
+            if (isActive(prashti.getIpAddr())) {
+                onlinePrashtis.add(prashti);
             }
         }
-        return prashtiList;
+        return onlinePrashtis;
     }
 
     /**
