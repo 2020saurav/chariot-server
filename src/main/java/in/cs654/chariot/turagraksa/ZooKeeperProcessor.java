@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  * PRASHTI_CHANGE : D2Client sends this notification for Zookeeper to update it's otherZookeeperClient
  */
 class ZooKeeperProcessor {
-    final static Logger LOGGER = Logger.getLogger("ZooKeeper Processor");
+    private final static Logger LOGGER = Logger.getLogger("ZooKeeper Processor");
     /**
      * This function matches the request for reserved functions and accordingly handles them
      * @param request to be handled
