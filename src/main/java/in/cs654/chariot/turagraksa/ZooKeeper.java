@@ -34,7 +34,7 @@ public class ZooKeeper {
     public static final Long HB_TIME_THRESHOLD = 30000L; // milliseconds
     public static final Long HB_TIME_ASHVA = 15000L;
     private static final Long PING_ECHO_DURATION = 10000L;
-    private static final Long ZK_PING_TIMEOUT = 40000L;
+    private static final Long ZK_PING_TIMEOUT = 4000L;
     private static ZooKeeperClient otherZooKeeperClient = null;
     private final static Logger LOGGER = Logger.getLogger("ZooKeeper");
 
