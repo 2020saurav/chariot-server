@@ -21,7 +21,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
 public class MongoTest {
-    @Test
+//    @Test
     public void testMongoDevice() {
         String deviceId = CommonUtils.randomString(6);
         String dockerImage = CommonUtils.randomString(10);
@@ -31,7 +31,7 @@ public class MongoTest {
         assertTrue(assertion);
     }
 
-    @Test
+//    @Test
     public void testMongoHeartbeat() {
         String ipAddr = "0.0.0.0";
         String time = ((Long) System.currentTimeMillis()).toString();
