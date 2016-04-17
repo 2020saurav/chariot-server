@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>CHARIOT by 2020saurav</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">CHARIOT</h1>
+      <h2 class="project-tagline">Architecture for IoT</h2>
+      <a href="https://github.com/2020saurav/chariot-server" class="btn">View on GitHub</a>
+      <a href="https://github.com/2020saurav/chariot-server/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/2020saurav/chariot-server/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="chariot-" class="anchor" href="#chariot-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>CHARIOT <a href="https://travis-ci.org/2020saurav/chariot-server"><img src="https://travis-ci.org/2020saurav/chariot-server.svg?branch=master" alt="Build Status"></a>
+</h1>
+
+<p>CHARIOT is a framework to simplify request processing for Internet of Things. The idea is to do heavy computations on
+legacy machines such as desktops or laptops rather than on IoT devices such as sensors or web cameras. This eliminates
+requirement of powerful RAM or processors for any task on IoT devices and saves battery power of such devices. This
+idea is inspired from Pub-Sub pattern and RPC protocol.</p>
+
+<p>This work was done as a course project in CS654A Software Architecture by Abhilash Kumar and Saurav Kumar at IIT Kanpur.</p>
+
+<h2>
+<a id="nomenclature" class="anchor" href="#nomenclature" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Nomenclature</h2>
+
+<p>In a chariot, the functionality (of movement) is provided by the wagon but the actual hard work is done by the horses.
+Symbolically, in this architecture the IoT devices become the wagon which has its own functionality but the processing
+shall be done by machines with high computational resources. Names of components:</p>
+
+<ul>
+<li>Processing Machines : Ashva (Sanskrit for horse)</li>
+<li>Coordinating Machines : Prashti (Sanskrit for horse leader)</li>
+<li>Zookeeper : Turagraksa (Sanskrit for patron of horse)</li>
+</ul>
+
+<h2>
+<a id="architecture" class="anchor" href="#architecture" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Architecture</h2>
+
+<p><img src="https://cloud.githubusercontent.com/assets/3881510/14587134/da32e114-04ca-11e6-88f4-0b8155ac2c6f.png" alt="logical"></p>
+
+<p><img src="https://cloud.githubusercontent.com/assets/3881510/14587133/d005e376-04ca-11e6-8ede-991a7f1a843d.png" alt="physical"></p>
+
+<p><img src="https://cloud.githubusercontent.com/assets/3881510/14587124/a9d13458-04ca-11e6-8011-88d12b1a9859.png" alt="process"></p>
+
+<h2>
+<a id="understanding-the-system" class="anchor" href="#understanding-the-system" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Understanding the system</h2>
+
+<p>TODO</p>
+
+<h2>
+<a id="build-and-deployment" class="anchor" href="#build-and-deployment" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Build and Deployment</h2>
+
+<p>This is a Gradle project which should be built using <code>gradle build</code>. The <code>build.gradle</code> file contains several tasks
+to deploy AshvaServer, PrashtiServer, ZookeeperServer, run different intergration tests and build complete jar.
+Deployment is faster without using Gradle.</p>
+
+<div class="highlight highlight-source-shell"><pre>gradle -q buildCompleteJar
+java -cp path/to/completejar <span class="pl-k">in</span>.cs654...Server</pre></div>
+
+<h2>
+<a id="building-applications-for-chariot-framework" class="anchor" href="#building-applications-for-chariot-framework" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building applications for CHARIOT framework</h2>
+
+<p>Writing applications for CHARIOT framework is very simple and elegant. To build applications, developers need to create
+a docker image which has the right functions in it. This docker image runs on the chariot-server. For simplification,
+a base docker image <code>2020saurav/chariot:1.0</code> should be used (recommended). This image is built on Ubuntu 14.04 and has
+scripts to parse requests and responses into objects from bytes. One just needs to add the relevant functions for
+execution of RPC functions.</p>
+
+<h3>
+<a id="building-your-docker-image" class="anchor" href="#building-your-docker-image" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building your docker image</h3>
+
+<div class="highlight highlight-source-shell"><pre>docker pull 2020saurav/chariot:1.0
+docker run -t -i 2020saurav/chariot:1.0 /bin/bash
+<span class="pl-c1">cd</span> <span class="pl-k">~</span>/chariot
+vi handler.py</pre></div>
+
+<p>The <code>handler.py</code> looks like:</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-c">#!/usr/bin/python3</span>
+
+<span class="pl-k">def</span> <span class="pl-en">handle</span>(<span class="pl-smi">request</span>):
+  <span class="pl-k">return</span> <span class="pl-c1">globals</span>()[request[<span class="pl-s"><span class="pl-pds">'</span>function_name<span class="pl-pds">'</span></span>]]()
+
+<span class="pl-k">def</span> <span class="pl-en">testFunc</span>():
+  <span class="pl-k">return</span> {<span class="pl-s"><span class="pl-pds">'</span>answer<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>42<span class="pl-pds">'</span></span>}</pre></div>
+
+<p>Edit <code>handler.py</code> to create any function, but remember to return a dictionary. The keys in the dictionary will be used
+to extract values from the response sent to the client. The RPC client can be in any language. At present, we are
+providing support for python inside docker image. If you dig deeper, it is super simple to create interface in any
+language. <code>/bin/chariot</code> in the docker image is the executable that is called by the Ashva processor. This executable
+transfers the request to handler.py (by importing it).</p>
+
+<p>Once <code>handler.py</code> is edited and ready to work, exit from the container</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">exit</span>
+docker commit -m <span class="pl-s"><span class="pl-pds">"</span>Commit message<span class="pl-pds">"</span></span> -a <span class="pl-s"><span class="pl-pds">"</span>Name of author<span class="pl-pds">"</span></span> <span class="pl-k">&lt;</span>-container-id-<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>-username/newImageName:version-<span class="pl-k">&gt;</span>
+docker push <span class="pl-k">&lt;</span>-username/newImageName:version-<span class="pl-k">&gt;</span> <span class="pl-c"># to push it to docker hub. requires to be logged in</span></pre></div>
+
+<p>Once the docker image is ready, making calls to chariot server is even easier.</p>
+
+<h3>
+<a id="java-application" class="anchor" href="#java-application" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Java Application</h3>
+
+<ul>
+<li>Import chariot jar into your project (available under releases)</li>
+<li>Make a request:</li>
+</ul>
+
+<div class="highlight highlight-source-java"><pre><span class="pl-smi">PrashtiClient</span> client <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">PrashtiClient</span>();
+<span class="pl-smi">BasicRequest</span> request <span class="pl-k">=</span> <span class="pl-smi">BasicRequest</span><span class="pl-k">.</span>newBuilder()
+        .setRequestId(<span class="pl-smi">CommonUtils</span><span class="pl-k">.</span>randomString(<span class="pl-c1">32</span>))
+        .setDeviceId(<span class="pl-k">&lt;</span>deviceId<span class="pl-k">&gt;</span>)
+        .setFunctionName(<span class="pl-k">&lt;</span>functionName<span class="pl-k">&gt;</span>)
+        .setArguments(<span class="pl-k">new</span> <span class="pl-k">ArrayList&lt;<span class="pl-smi">String</span>&gt;</span>())
+        .setExtraData(<span class="pl-k">new</span> <span class="pl-k">HashMap&lt;<span class="pl-smi">String</span>, <span class="pl-smi">String</span>&gt;</span>())
+        .build();
+<span class="pl-smi">BasicResponse</span> response <span class="pl-k">=</span> client<span class="pl-k">.</span>call(request);</pre></div>
+
+<h3>
+<a id="python-application" class="anchor" href="#python-application" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Python Application</h3>
+
+<ul>
+<li>Import chariot library (available <a href="https://github.com/2020saurav/chariot-pyclient">here</a>)</li>
+<li>Make a request:</li>
+</ul>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-c">#!/usr/bin/python3</span>
+<span class="pl-k">from</span> chariot <span class="pl-k">import</span> <span class="pl-k">*</span>
+client <span class="pl-k">=</span> PrashtiClient()
+request <span class="pl-k">=</span> {
+    <span class="pl-s"><span class="pl-pds">'</span>device_id<span class="pl-pds">'</span></span> : <span class="pl-k">&lt;</span>deviceId<span class="pl-k">&gt;</span>,
+    <span class="pl-s"><span class="pl-pds">'</span>request_id<span class="pl-pds">'</span></span> : randomReqId(),
+    <span class="pl-s"><span class="pl-pds">'</span>function_name<span class="pl-pds">'</span></span> : <span class="pl-k">&lt;</span>functionName<span class="pl-k">&gt;</span>,
+    <span class="pl-s"><span class="pl-pds">'</span>arguments<span class="pl-pds">'</span></span> : [],
+    <span class="pl-s"><span class="pl-pds">'</span>extra_data<span class="pl-pds">'</span></span> : {}
+}
+response <span class="pl-k">=</span> client.call(request)</pre></div>
+
+<h3>
+<a id="future-works" class="anchor" href="#future-works" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>FUTURE WORKS</h3>
+
+<ul>
+<li>Authentication</li>
+<li>Encryption</li>
+<li>IPv6 support (very minor changes required)</li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/2020saurav/chariot-server">CHARIOT</a> is maintained by <a href="https://github.com/2020saurav">2020saurav</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
