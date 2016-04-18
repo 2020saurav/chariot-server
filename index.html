@@ -12,7 +12,7 @@
   <body>
     <section class="page-header">
       <h1 class="project-name">CHARIOT</h1>
-      <h2 class="project-tagline">Architecture for IoT</h2>
+      <h2 class="project-tagline">A scalable processing architecture for Internet of Things</h2>
       <a href="https://github.com/2020saurav/chariot-server" class="btn">View on GitHub</a>
       <a href="https://github.com/2020saurav/chariot-server/zipball/master" class="btn">Download .zip</a>
       <a href="https://github.com/2020saurav/chariot-server/tarball/master" class="btn">Download .tar.gz</a>
@@ -38,6 +38,7 @@ Symbolically, in this architecture the IoT devices become the wagon which has it
 shall be done by machines with high computational resources. Names of components:</p>
 
 <ul>
+<li>Client Devices : Yaan (Sanskrit for wagon)</li>
 <li>Processing Machines : Ashva (Sanskrit for horse)</li>
 <li>Coordinating Machines : Prashti (Sanskrit for horse leader)</li>
 <li>Zookeeper : Turagraksa (Sanskrit for patron of horse)</li>
@@ -50,12 +51,30 @@ shall be done by machines with high computational resources. Names of components
 
 <p><img src="https://cloud.githubusercontent.com/assets/3881510/14587133/d005e376-04ca-11e6-8ede-991a7f1a843d.png" alt="physical"></p>
 
-<p><img src="https://cloud.githubusercontent.com/assets/3881510/14587124/a9d13458-04ca-11e6-8011-88d12b1a9859.png" alt="process"></p>
+<p><img src="https://cloud.githubusercontent.com/assets/3881510/14595178/c500796a-055a-11e6-9f19-1dfe509fc6a5.png" alt="process"></p>
 
 <h2>
 <a id="understanding-the-system" class="anchor" href="#understanding-the-system" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Understanding the system</h2>
 
-<p>TODO</p>
+<p>TL; DR: Yaan (device) makes call to Prashti server and gets a response, which was processed at an Ashva inside the
+docker image provided with the device.</p>
+
+<p>Chariot Server: Chariot server consists of components such as Ashva, Prashti, Turagraksa and D2. The tasks of these
+components are as follows:</p>
+
+<ul>
+<li>Ashva: Execute the task assigned to it by a Prashti</li>
+<li>Prashti: Receive requests from client and forward it to an Ashva, balancing the load.</li>
+<li>Turagraksa: Zookeeper component to receive heartbeat from Ashva, ping other Zookeeper and ensure system recovery</li>
+<li>D2: This component is separately deployed. It keeps the information of current Prashti servers.</li>
+</ul>
+
+<p>The following image shows the work flow of server system.
+<img src="https://cloud.githubusercontent.com/assets/3881510/14595445/dba55f94-055c-11e6-9243-6642b2b2b43f.png" alt="workflow"></p>
+
+<p>Chariot Client: Clients can be any device. To make request to the server, the device needs to form the request in a
+specified format. Libraries are available (currently in Java and Python) to build requests and parse responses.
+Examples are present in usage section below.</p>
 
 <h2>
 <a id="build-and-deployment" class="anchor" href="#build-and-deployment" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Build and Deployment</h2>
@@ -67,8 +86,18 @@ Deployment is faster without using Gradle.</p>
 <div class="highlight highlight-source-shell"><pre>gradle -q buildCompleteJar
 java -cp path/to/completejar <span class="pl-k">in</span>.cs654...Server</pre></div>
 
+<p>To deploy servers, following are required:</p>
+
+<ul>
+<li>RabbitMQ Server. Add <code>[{rabbit, [{loopback_users, []}]}].</code> in <code>/etc/rabbitmq/rabbitmq.config</code>
+</li>
+<li>MongoDB</li>
+<li>Docker</li>
+<li>JDK 7</li>
+</ul>
+
 <h2>
-<a id="building-applications-for-chariot-framework" class="anchor" href="#building-applications-for-chariot-framework" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building applications for CHARIOT framework</h2>
+<a id="usage-building-applications-for-chariot-framework" class="anchor" href="#usage-building-applications-for-chariot-framework" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage: Building applications for CHARIOT framework</h2>
 
 <p>Writing applications for CHARIOT framework is very simple and elegant. To build applications, developers need to create
 a docker image which has the right functions in it. This docker image runs on the chariot-server. For simplification,
@@ -119,8 +148,8 @@ docker push <span class="pl-k">&lt;</span>-username/newImageName:version-<span c
 <div class="highlight highlight-source-java"><pre><span class="pl-smi">PrashtiClient</span> client <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">PrashtiClient</span>();
 <span class="pl-smi">BasicRequest</span> request <span class="pl-k">=</span> <span class="pl-smi">BasicRequest</span><span class="pl-k">.</span>newBuilder()
         .setRequestId(<span class="pl-smi">CommonUtils</span><span class="pl-k">.</span>randomString(<span class="pl-c1">32</span>))
-        .setDeviceId(<span class="pl-k">&lt;</span>deviceId<span class="pl-k">&gt;</span>)
-        .setFunctionName(<span class="pl-k">&lt;</span>functionName<span class="pl-k">&gt;</span>)
+        .setDeviceId(<span class="pl-k">&lt;</span>deviceId<span class="pl-k">&gt;</span>) <span class="pl-c">// "device42"</span>
+        .setFunctionName(<span class="pl-k">&lt;</span>functionName<span class="pl-k">&gt;</span>) <span class="pl-c">// "testFunc"</span>
         .setArguments(<span class="pl-k">new</span> <span class="pl-k">ArrayList&lt;<span class="pl-smi">String</span>&gt;</span>())
         .setExtraData(<span class="pl-k">new</span> <span class="pl-k">HashMap&lt;<span class="pl-smi">String</span>, <span class="pl-smi">String</span>&gt;</span>())
         .build();
@@ -138,16 +167,30 @@ docker push <span class="pl-k">&lt;</span>-username/newImageName:version-<span c
 <span class="pl-k">from</span> chariot <span class="pl-k">import</span> <span class="pl-k">*</span>
 client <span class="pl-k">=</span> PrashtiClient()
 request <span class="pl-k">=</span> {
-    <span class="pl-s"><span class="pl-pds">'</span>device_id<span class="pl-pds">'</span></span> : <span class="pl-k">&lt;</span>deviceId<span class="pl-k">&gt;</span>,
+    <span class="pl-s"><span class="pl-pds">'</span>device_id<span class="pl-pds">'</span></span> : <span class="pl-k">&lt;</span>deviceId<span class="pl-k">&gt;</span>, <span class="pl-c"># 'device42'</span>
     <span class="pl-s"><span class="pl-pds">'</span>request_id<span class="pl-pds">'</span></span> : randomReqId(),
-    <span class="pl-s"><span class="pl-pds">'</span>function_name<span class="pl-pds">'</span></span> : <span class="pl-k">&lt;</span>functionName<span class="pl-k">&gt;</span>,
+    <span class="pl-s"><span class="pl-pds">'</span>function_name<span class="pl-pds">'</span></span> : <span class="pl-k">&lt;</span>functionName<span class="pl-k">&gt;</span>, <span class="pl-c"># 'testFunc'</span>
     <span class="pl-s"><span class="pl-pds">'</span>arguments<span class="pl-pds">'</span></span> : [],
     <span class="pl-s"><span class="pl-pds">'</span>extra_data<span class="pl-pds">'</span></span> : {}
 }
 response <span class="pl-k">=</span> client.call(request)</pre></div>
 
-<h3>
-<a id="future-works" class="anchor" href="#future-works" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>FUTURE WORKS</h3>
+<h2>
+<a id="technologies-used" class="anchor" href="#technologies-used" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Technologies Used</h2>
+
+<ul>
+<li>Java 7</li>
+<li>Gradle build system</li>
+<li>RabbitMQ RPC server</li>
+<li>Apache Avro</li>
+<li>Spark WebServer (for D2)</li>
+<li>Docker</li>
+<li>MongoDB</li>
+<li>JUnit Test Framework</li>
+</ul>
+
+<h2>
+<a id="future-works" class="anchor" href="#future-works" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Future Works</h2>
 
 <ul>
 <li>Authentication</li>
