@@ -4,7 +4,7 @@ legacy machines such as desktops or laptops rather than on IoT devices such as s
 requirement of powerful RAM or processors for any task on IoT devices and saves battery power of such devices. This
 idea is inspired from Pub-Sub pattern and RPC protocol.
 
-This work was done as a course project in CS654A Software Architecture by Abhilash Kumar and Saurav Kumar at IIT Kanpur.
+This work was done as a course project in CS654A Software Architecture by Abhilash Kumar and Saurav Kumar at IIT Kanpur. Presentation available at [SlideShare](http://www.slideshare.net/SauravKumar145/chariot-61038021)
 
 ## Nomenclature
 In a chariot, the functionality (of movement) is provided by the wagon but the actual hard work is done by the horses.
